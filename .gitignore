@@ -1,0 +1,28 @@
+**/target/
+.idea
+*.iml
+*.class
+*Test.java
+*.yml
+*.properties
+**/test/
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
