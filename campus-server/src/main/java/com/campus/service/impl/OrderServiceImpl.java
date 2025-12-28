@@ -61,12 +61,32 @@ public class OrderServiceImpl implements OrderService {
      * */
     @Transactional
     public OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO) {
-        //判断地址簿是否为空
+        //获取地址簿信息
         AddressBook addressBook = addressBookMapper.getById(ordersSubmitDTO.getAddressBookId());
-        if (addressBook == null) {
-            throw new AddressBookBusinessException(MessageConstant.ADDRESS_BOOK_IS_NULL);
+        //创建订单对象
+        Orders orders = new Orders();
+        //判断取餐方式
+        if (ordersSubmitDTO.getDeliveryMode() == 0) {
+            //如果是到店自取，则不需要配送
+            if (ordersSubmitDTO.getTableNumber() != null){
+                //如果是扫码点餐
+                orders.setAddress(MessageConstant.TABLE_NUMBER+":"+ordersSubmitDTO.getTableNumber());
+            }else {
+                //到店自取
+                orders.setAddress(MessageConstant.PICK_UP_IN_STORE);
+            }
+
+        } else {
+            //判断地址簿是否为空
+            if (addressBook == null) {
+                throw new AddressBookBusinessException(MessageConstant.ADDRESS_BOOK_IS_NULL);
+            }
+            //地址不为空
+            orders.setAddress(addressBook.getProvinceName() + addressBook.getCityName()
+                    + addressBook.getDistrictName() + addressBook.getDetail());
         }
-        //判断购物城是否为空
+
+        //判断购物车是否为空
         ShoppingCart shoppingCart = new ShoppingCart();
         //获取当前用户id
         Long userId = BaseContext.getCurrentId();
@@ -77,7 +97,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         //向订单表插入一条数据
-        Orders orders = new Orders();
         BeanUtils.copyProperties(ordersSubmitDTO, orders);
         orders.setUserId(userId);
         orders.setOrderTime(LocalDateTime.now());
@@ -86,8 +105,6 @@ public class OrderServiceImpl implements OrderService {
         orders.setConsignee(addressBook.getConsignee());
         orders.setStatus(Orders.PENDING_PAYMENT);
         orders.setPayStatus(Orders.UN_PAID);
-        orders.setAddress(addressBook.getProvinceName() + addressBook.getCityName()
-                + addressBook.getDistrictName() + addressBook.getDetail());
 
         orderMapper.insert(orders);
 
@@ -107,7 +124,6 @@ public class OrderServiceImpl implements OrderService {
             shoppingCartMapper.delete(userId);
         }
 
-
         //返回OrderSubmitVO
         OrderSubmitVO orderSubmitVO = OrderSubmitVO.builder()
                 .id(orders.getId())
@@ -118,6 +134,7 @@ public class OrderServiceImpl implements OrderService {
 
         return orderSubmitVO;
     }
+
 
     /**
      * 订单支付
@@ -170,9 +187,9 @@ public class OrderServiceImpl implements OrderService {
 
         //向客户端浏览器推送提醒 type , orderId, content
         Map map = new HashMap();
-        map.put("type",1); //1来单提醒  2 客户催单
-        map.put("orderId",ordersDB.getId());
-        map.put("content","订单号："+ outTradeNo);
+        map.put("type", 1); //1来单提醒  2 客户催单
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号：" + outTradeNo);
 
         String json = JSON.toJSONString(map);
         webSocketServer.sendToAllClient(json);
@@ -192,7 +209,11 @@ public class OrderServiceImpl implements OrderService {
 
         OrderVO orderVO = new OrderVO();
         BeanUtils.copyProperties(orders, orderVO);
-
+        if (orders.getDeliveryMode() == 1) {
+            orderVO.setDeliveryModeName(MessageConstant.TAKEAWAY_DELIVERY);
+        } else {
+            orderVO.setDeliveryModeName(MessageConstant.PICK_UP_IN_STORE);
+        }
         orderVO.setOrderDetailList(orderDetailList);
 
         return orderVO;
@@ -504,13 +525,13 @@ public class OrderServiceImpl implements OrderService {
     public void remider(Long id) {
         Orders orders = orderMapper.getById(id);
         //检验订单是否存在
-        if (orders == null){
+        if (orders == null) {
             throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
         }
-        Map map =new HashMap();
-        map.put("type",2);
-        map.put("orderId",id);
-        map.put("content","订单号："+orders.getNumber());
+        Map map = new HashMap();
+        map.put("type", 2);
+        map.put("orderId", id);
+        map.put("content", "订单号：" + orders.getNumber());
 
         String json = JSON.toJSONString(map);
 

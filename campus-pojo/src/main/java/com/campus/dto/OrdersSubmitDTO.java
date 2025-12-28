@@ -20,6 +20,9 @@ public class OrdersSubmitDTO implements Serializable {
     private LocalDateTime estimatedDeliveryTime;
     //配送状态  1立即送出  0选择具体时间
     private Integer deliveryStatus;
+    //取餐方式：1=外卖配送 0=到店自取
+    private Integer deliveryMode;
+
     //餐具数量
     private Integer tablewareNumber;
     //餐具数量状态  1按餐量提供  0选择具体数量
@@ -28,4 +31,6 @@ public class OrdersSubmitDTO implements Serializable {
     private Integer packAmount;
     //总金额
     private BigDecimal amount;
+    //桌号
+    private String tableNumber;
 }

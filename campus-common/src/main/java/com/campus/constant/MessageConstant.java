@@ -28,4 +28,9 @@ public class MessageConstant {
     public static final String ORDER_NOT_FOUND = "订单不存在";
     public static final String DISH_NOT_FAILED_BECAUSE_SETMEAL= "套餐已启售，菜品不能停售";
     public static final String ORDER_TIMEOUT = "订单超时，自动取消";
+    public static final String PICK_UP_IN_STORE = "到店自取";
+    public static final String TAKEAWAY_DELIVERY = "外卖配送";
+    public static final String TABLE_RANGE_IS_INCORRECT = "桌号范围有误";
+    public static final String TABLE_NUMBER = "桌号";
+
 }

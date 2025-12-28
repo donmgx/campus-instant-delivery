@@ -95,6 +95,9 @@ public class Orders implements Serializable {
 
     //配送状态  1立即送出  0选择具体时间
     private Integer deliveryStatus;
+    //配送方式  1=外卖配送 0=到店自取
+    private Integer deliveryMode;
+
 
     //送达时间
     private LocalDateTime deliveryTime;
