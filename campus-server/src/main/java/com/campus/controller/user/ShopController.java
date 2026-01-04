@@ -9,7 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 //该Bean的名称与admin中的是相同的，都是shopController，需指定bean的名称
-@RestController("userShopController")
+@RestController
 @Slf4j
 @RequestMapping("/user/shop")
 @Api(tags = "店铺相关操作")

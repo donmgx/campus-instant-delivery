@@ -32,5 +32,8 @@ public class MessageConstant {
     public static final String TAKEAWAY_DELIVERY = "外卖配送";
     public static final String TABLE_RANGE_IS_INCORRECT = "桌号范围有误";
     public static final String TABLE_NUMBER = "桌号";
+    public static final String AUTHENTICATION_FAILED = "认证失败，请重新登录";
+    public static final String INSUFFICIENT_PERMISSIONS = "您的权限不足";
+
 
 }

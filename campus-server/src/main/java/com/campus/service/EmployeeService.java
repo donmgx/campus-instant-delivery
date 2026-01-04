@@ -6,15 +6,17 @@ import com.campus.dto.EmployeePageQueryDTO;
 import com.campus.dto.PasswordEditDTO;
 import com.campus.entity.Employee;
 import com.campus.result.PageResult;
+import com.campus.vo.EmployeeLoginVO;
 
 public interface EmployeeService {
 
     /**
      * 员工登录
+     *
      * @param employeeLoginDTO
      * @return
      */
-    Employee login(EmployeeLoginDTO employeeLoginDTO);
+    EmployeeLoginVO login(EmployeeLoginDTO employeeLoginDTO);
 
     /*
     * 新增员工

@@ -13,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class CategoryController {
      * */
     @PutMapping
     @ApiOperation("修改分类")
+    @PreAuthorize("hasAuthority('category:edit')")
     public Result changeCategory(@RequestBody CategoryDTO categoryDTO) {
 
         log.info("修改分类:{}", categoryDTO);
@@ -44,6 +46,7 @@ public class CategoryController {
      * */
     @GetMapping("/page")
     @ApiOperation("分类分页查询")
+    @PreAuthorize("hasAuthority('category:list')")
     public Result<PageResult> selectPage(CategoryPageQueryDTO categoryPageQueryDTO) {
 
         log.info("分类分页查询:{}", categoryPageQueryDTO);
@@ -58,6 +61,7 @@ public class CategoryController {
      * */
     @PostMapping("/status/{status}")
     @ApiOperation("启用禁用分类")
+    @PreAuthorize("hasAuthority('category:status')")
     public Result startOrStop(@PathVariable Integer status, Long id) {
 
         log.info("启用禁用分类：状态：{},id：{}", status, id);
@@ -68,13 +72,14 @@ public class CategoryController {
     }
 
     /*
-    * 新增分类
-    * */
+     * 新增分类
+     * */
     @PostMapping
     @ApiOperation("新增分类")
-    public Result save(@RequestBody CategoryDTO categoryDTO){
+    @PreAuthorize("hasAuthority('category:add')")
+    public Result save(@RequestBody CategoryDTO categoryDTO) {
 
-        log.info("新增分类：{}",categoryDTO);
+        log.info("新增分类：{}", categoryDTO);
 
         categoryService.save(categoryDTO);
 
@@ -82,26 +87,28 @@ public class CategoryController {
     }
 
     /*
-    * 根据id删除分类
-    * */
+     * 根据id删除分类
+     * */
     @DeleteMapping
     @ApiOperation("删除分类")
-    public Result delete(Long id){
+    @PreAuthorize("hasAuthority('category:delete')")
+    public Result delete(Long id) {
 
-        log.info("删除的分类id：{}",id);
-        
+        log.info("删除的分类id：{}", id);
+
         categoryService.delete(id);
-        
+
         return Result.success();
     }
 
     /*
-    * 根据类型查询分类 ,/admin/category/list
-    * */
+     * 根据类型查询分类 ,/admin/category/list
+     * */
     @GetMapping("/list")
     @ApiOperation("根据类型查询分类")
-    public  Result list(Integer type){
-        log.info("根据类型查询分类:{}",type);
+    @PreAuthorize("hasAuthority('category:list')")
+    public Result list(Integer type) {
+        log.info("根据类型查询分类:{}", type);
         List<Category> list = categoryService.list(type);
         return Result.success(list);
     }

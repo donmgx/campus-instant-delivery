@@ -11,6 +11,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,6 +36,7 @@ public class ReportController {
      * */
     @GetMapping("/turnoverStatistics")
     @ApiOperation("营业额统计")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public Result<TurnoverReportVO> TurnoverStatistics(@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin
             , @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
         log.info("营业额统计：{} ~ {}", begin, end);
@@ -48,6 +50,7 @@ public class ReportController {
      * */
     @GetMapping("/userStatistics")
     @ApiOperation("用户统计")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public Result<UserReportVO> userStatistics(@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
         log.info("用户统计：{} ~ {}", begin, end);
         UserReportVO userReportVO = reportService.userStatistics(begin, end);
@@ -60,6 +63,7 @@ public class ReportController {
      * */
     @GetMapping("/ordersStatistics")
     @ApiOperation("订单统计")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public Result<OrderReportVO> orderStatistics(@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
         log.info("订单统计：{} ~ {}", begin, end);
         OrderReportVO orderReportVO = reportService.orderStatistics(begin, end);
@@ -72,6 +76,7 @@ public class ReportController {
      * */
     @GetMapping("top10")
     @ApiOperation("销量排行")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public Result<SalesTop10ReportVO> salesTop(@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
         log.info("销量排名：{} ~ {}", begin, end);
         SalesTop10ReportVO salesTop10ReportVO = reportService.salesTop(begin, end);
@@ -84,6 +89,7 @@ public class ReportController {
     * */
     @GetMapping("/export")
     @ApiOperation("营业数据导出")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public void export(HttpServletResponse response){
         log.info("营业数据导出");
         reportService.exportBusinessDate(response);

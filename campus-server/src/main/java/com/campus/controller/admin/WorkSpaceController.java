@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,6 +35,7 @@ public class WorkSpaceController {
      */
     @GetMapping("/businessData")
     @ApiOperation("工作台今日数据查询")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public Result<BusinessDataVO> businessData(){
         //获得当天的开始时间
         LocalDateTime begin = LocalDateTime.now().with(LocalTime.MIN);
@@ -50,6 +52,7 @@ public class WorkSpaceController {
      */
     @GetMapping("/overviewOrders")
     @ApiOperation("查询订单管理数据")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public Result<OrderOverViewVO> orderOverView(){
         return Result.success(workspaceService.getOrderOverView());
     }
@@ -60,6 +63,7 @@ public class WorkSpaceController {
      */
     @GetMapping("/overviewDishes")
     @ApiOperation("查询菜品总览")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public Result<DishOverViewVO> dishOverView(){
         return Result.success(workspaceService.getDishOverView());
     }
@@ -70,6 +74,7 @@ public class WorkSpaceController {
      */
     @GetMapping("/overviewSetmeals")
     @ApiOperation("查询套餐总览")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public Result<SetmealOverViewVO> setmealOverView(){
         return Result.success(workspaceService.getSetmealOverView());
     }

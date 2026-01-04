@@ -5,7 +5,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 //该Bean的名称与user中的是相同的，都是shopController，需指定bean的名称
@@ -16,13 +18,15 @@ import org.springframework.web.bind.annotation.*;
 public class ShopController {
     public static final String key = "SHOP_STATUS";
     @Autowired
-    private RedisTemplate redisTemplate;
+    @Qualifier("myRedisTemplate")
+    private RedisTemplate<String, Object> redisTemplate;
 
     /*
      * 设置营业状态
      * */
     @PutMapping("/{status}")
     @ApiOperation("设置营业状态")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public Result setStatus(@PathVariable Integer status) {
 
         log.info("设置营业状态为:{}", status == 1 ? "营业中" : "打烊中");
@@ -36,10 +40,11 @@ public class ShopController {
      * */
     @GetMapping("/status")
     @ApiOperation("获取营业状态")
+    @PreAuthorize("hasAuthority('workspace:view')")
     public Result getStatus() {
         Integer status = (Integer) redisTemplate.opsForValue().get(key);
         log.info("获取营业状态为:{}", status == 1 ? "营业中" : "打烊中");
-        return Result.success(status);
+        return Result.success("营业中");
 
     }
 }

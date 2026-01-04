@@ -4,6 +4,7 @@ import com.campus.result.Result;
 import com.campus.service.PathService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ public class PathController {
      * 生成小程序路径
      * */
     @GetMapping("/generate")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result<List<String>> generate(@Pattern(regexp = "^\\S{1,10}$") Integer start, @Pattern(regexp = "^\\S{1,10}$") Integer end) throws Exception {
         log.info("生成小程序路径,桌号范围：{}~{}", start, end);
         List<String> pathList = pathService.generate(start, end);

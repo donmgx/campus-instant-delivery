@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -26,6 +27,7 @@ public class OrderController {
      * */
     @GetMapping("/details/{id}")
     @ApiOperation("管理端查询订单详情")
+    @PreAuthorize("hasAuthority('order:list')")
     public Result<OrderVO> getById(@PathVariable Long id) {
         log.info("管理端查询订单详情:id:{}", id);
         OrderVO orderVO = orderService.getById(id);
@@ -37,6 +39,7 @@ public class OrderController {
      * */
     @GetMapping("/conditionSearch")
     @ApiOperation("订单搜索")
+    @PreAuthorize("hasAuthority('order:list')")
     public Result<PageResult> getByIds(OrdersPageQueryDTO ordersPageQueryDTO) {
         log.info("订单搜索:id:{}", ordersPageQueryDTO);
         PageResult pageResult = orderService.getOrders(ordersPageQueryDTO);
@@ -48,6 +51,7 @@ public class OrderController {
      * */
     @PutMapping("/cancel")
     @ApiOperation("取消订单")
+    @PreAuthorize("hasAuthority('order:confirm')")
     public Result cancel(@RequestBody OrdersCancelDTO ordersCancelDTO) throws Exception {
         log.info("取消订单:{}", ordersCancelDTO);
         orderService.adminConcel(ordersCancelDTO);
@@ -60,6 +64,7 @@ public class OrderController {
      * */
     @GetMapping("/statistics")
     @ApiOperation("各个状态的订单数量统计")
+    @PreAuthorize("hasAuthority('order:list')")
     public Result<OrderStatisticsVO> getStatus() {
         log.info("各个状态的订单数量统计");
 
@@ -74,9 +79,9 @@ public class OrderController {
     * */
     @PutMapping("/rejection")
     @ApiOperation("拒单")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result reject(@RequestBody OrdersRejectionDTO ordersRejectionDTO) throws Exception {
         log.info("商家拒单：{}",ordersRejectionDTO);
-
         orderService.reject(ordersRejectionDTO);
         return Result.success();
     }
@@ -87,6 +92,7 @@ public class OrderController {
     * */
     @PutMapping("/confirm")
     @ApiOperation("接单")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result confirm(@RequestBody OrdersConfirmDTO ordersConfirmDTO){
         log.info("接单：id:{}",ordersConfirmDTO);
         orderService.confirm(ordersConfirmDTO);
@@ -99,6 +105,7 @@ public class OrderController {
     * */
     @PutMapping("/delivery/{id}")
     @ApiOperation("派送订单")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result delivery(@PathVariable Long id) {
         orderService.delivery(id);
         return Result.success();
@@ -110,6 +117,7 @@ public class OrderController {
     * */
     @PutMapping("/complete/{id}")
     @ApiOperation("完成订单")
+    @PreAuthorize("hasAuthority('order:complete')")
     public Result complete(@PathVariable("id") Long id) {
         orderService.complete(id);
         return Result.success();

@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,6 +48,7 @@ public class DishController {
      * */
     @PostMapping
     @ApiOperation("新增菜品")
+    @PreAuthorize("hasAuthority('dish:add')")
     public Result saveWithFlavor(@RequestBody DishDTO dishDTO) {
         log.info("新增菜品：{}", dishDTO);
         dishService.saveWithFlavor(dishDTO);
@@ -62,6 +64,7 @@ public class DishController {
      */
     @GetMapping("/page")
     @ApiOperation("菜品的分类查询")
+    @PreAuthorize("hasAuthority('dish:list')")
     public Result<PageResult> getDishPage(DishPageQueryDTO dishPageQueryDTO) {
         log.info("菜品的分类查询:{}", dishPageQueryDTO);
 
@@ -75,6 +78,7 @@ public class DishController {
      * */
     @DeleteMapping
     @ApiOperation("批量删除菜品")
+    @PreAuthorize("hasAuthority('dish:delete')")
     public Result deleteDishWithFlavor(@RequestParam List<Long> ids) {
         log.info("批量删除菜品:{}", ids);
 
@@ -91,6 +95,7 @@ public class DishController {
      * */
     @GetMapping("/{id}")
     @ApiOperation("根据菜品 id 查询菜品和口味")
+    @PreAuthorize("hasAuthority('dish:list')")
     public Result<DishVO> getDishWithFlavor(@PathVariable Long id) {
         log.info("根据菜品 id 查询菜品和口味: 菜品id:{}", id);
         //返回DishVO类型
@@ -104,6 +109,7 @@ public class DishController {
      * */
     @PutMapping
     @ApiOperation("修改菜品")
+    @PreAuthorize("hasAuthority('dish:edit')")
     public Result update(@RequestBody DishDTO dishDTO) {
         log.info("修改菜品:id:{}", dishDTO);
         dishService.update(dishDTO);
@@ -119,6 +125,7 @@ public class DishController {
      * */
     @PostMapping("/status/{status}")
     @ApiOperation("菜品起售停售")
+    @PreAuthorize("hasAuthority('dish:status')")
     public Result startOrStop(@PathVariable Integer status, Long id) {
         log.info("菜品起售停售");
 
@@ -134,6 +141,7 @@ public class DishController {
      * */
     @GetMapping("/list")
     @ApiOperation("根据分类id查询菜品")
+    @PreAuthorize("hasAuthority('dish:list')")
     public Result<List<Dish>> getDishByCategoryId(Long categoryId) {
         log.info("根据分类id查询菜品:分类id：{}", categoryId);
 

@@ -1,6 +1,5 @@
 package com.campus.config;
 
-import com.campus.interceptor.JwtTokenAdminInterceptor;
 import com.campus.interceptor.JwtTokenUserInterceptor;
 import com.campus.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +28,6 @@ import java.util.List;
 public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 
     @Autowired
-    private JwtTokenAdminInterceptor jwtTokenAdminInterceptor;
-    @Autowired
     private JwtTokenUserInterceptor jwtTokenUserInterceptor;
 
     /**
@@ -39,13 +36,13 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
      * @param registry
      */
     protected void addInterceptors(InterceptorRegistry registry) {
-        log.info("开始注册自定义拦截器...");
-        registry.addInterceptor(jwtTokenAdminInterceptor)
-                .addPathPatterns("/admin/**")
-                .excludePathPatterns("/admin/employee/login");
+
+        log.info("开始注册自定义拦截器...{}");
+
         registry.addInterceptor(jwtTokenUserInterceptor)
                 .addPathPatterns("/user/**")
                 .excludePathPatterns("/user/user/login")
+                //这里已经排除了这个接口登录
                 .excludePathPatterns("/user/shop/status");
     }
 
@@ -56,15 +53,15 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     @Bean
     public Docket docketAdmin() {
         ApiInfo apiInfo = new ApiInfoBuilder()
-                .title("苍穹外卖项目接口文档")
+                .title("校园即时配送项目接口文档")
                 .version("2.0")
-                .description("苍穹外卖项目接口文档")
+                .description("校园即时配送项目接口文档")
                 .build();
         Docket docket = new Docket(DocumentationType.SWAGGER_2)
                 .groupName("管理端接口")
                 .apiInfo(apiInfo)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.sky.controller.admin"))
+                .apis(RequestHandlerSelectors.basePackage("com.campus.controller.admin"))
                 .paths(PathSelectors.any())
                 .build();
         return docket;
@@ -73,15 +70,15 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     @Bean
     public Docket docketUser() {
         ApiInfo apiInfo = new ApiInfoBuilder()
-                .title("苍穹外卖项目接口文档")
+                .title("校园即时配送项目接口文档")
                 .version("2.0")
-                .description("苍穹外卖项目接口文档")
+                .description("校园即时配送项目接口文档")
                 .build();
         Docket docket = new Docket(DocumentationType.SWAGGER_2)
                 .groupName("用户端接口")
                 .apiInfo(apiInfo)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.sky.controller.user"))
+                .apis(RequestHandlerSelectors.basePackage("com.campus.controller.user"))
                 .paths(PathSelectors.any())
                 .build();
         return docket;
