@@ -1,5 +1,6 @@
 package com.campus.config;
 
+import com.campus.interceptor.IdempotentInterceptor;
 import com.campus.interceptor.JwtTokenUserInterceptor;
 import com.campus.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 
     @Autowired
     private JwtTokenUserInterceptor jwtTokenUserInterceptor;
+    @Autowired
+    private IdempotentInterceptor idempotentInterceptor;
 
     /**
      * 注册自定义拦截器
@@ -42,12 +45,16 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         registry.addInterceptor(jwtTokenUserInterceptor)
                 .addPathPatterns("/user/**")
                 .excludePathPatterns("/user/user/login")
-                //这里已经排除了这个接口登录
                 .excludePathPatterns("/user/shop/status");
+        //增加幂等性拦截器
+        registry.addInterceptor(idempotentInterceptor)
+                .addPathPatterns("/**");
+
     }
 
     /**
      * 通过knife4j生成接口文档
+     *
      * @return
      */
     @Bean
@@ -86,6 +93,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 
     /**
      * 设置静态资源映射
+     *
      * @param registry
      */
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -94,8 +102,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     }
 
     /*
-    * 扩展Spring MVC框架的消息转换器
-    * */
+     * 扩展Spring MVC框架的消息转换器
+     * */
     @Override
     protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         log.info("扩展消息转换器...");
@@ -105,6 +113,6 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         converter.setObjectMapper(new JacksonObjectMapper());
 
         //将自己的消息转换器加入容器中
-        converters.add(0,converter);
+        converters.add(0, converter);
     }
 }

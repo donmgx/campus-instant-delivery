@@ -1,5 +1,6 @@
 package com.campus.controller.user;
 
+import com.campus.annotation.AutoIdempotent;
 import com.campus.dto.OrdersPageQueryDTO;
 import com.campus.dto.OrdersPaymentDTO;
 import com.campus.dto.OrdersSubmitDTO;
@@ -30,6 +31,7 @@ public class OrderController {
      * */
     @ApiOperation("用户下单")
     @PostMapping("/submit")
+    @AutoIdempotent
     public Result<OrderSubmitVO> submit(@RequestBody OrdersSubmitDTO ordersSubmitDTO) {
 
         log.info("用户下单:{}", ordersSubmitDTO);
