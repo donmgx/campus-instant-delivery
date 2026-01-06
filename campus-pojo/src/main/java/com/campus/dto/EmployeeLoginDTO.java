@@ -16,4 +16,7 @@ public class EmployeeLoginDTO implements Serializable {
     @ApiModelProperty("密码")
     private String password;
 
+    @ApiModelProperty("验证码通过凭证")
+    private String captchaVerification;
+
 }

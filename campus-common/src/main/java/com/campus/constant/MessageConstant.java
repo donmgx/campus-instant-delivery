@@ -37,6 +37,7 @@ public class MessageConstant {
     public static final String NOT_SUBMIT_REPEATEDLY_OR_TOKEN_EXPIRED = "请勿重复提交或Token已过期";
     public static final String TOKEN_EXPIRED_OR_BELONGS_TO_OTHERS = "Token已过期或属于其他用户";
     public static final String TOKEN_NOT_EXIST = "Token不存在";
+    public static final String CAPTCHA_VERIFICATION_NOT_COMPLETE = "请先完成滑动验证";
 
 
 }

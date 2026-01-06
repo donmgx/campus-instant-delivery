@@ -63,7 +63,8 @@ public class SecurityConfig {
                 //配置路径拦截规则
                 .authorizeHttpRequests(auth -> auth
                         .antMatchers("/admin/employee/login").permitAll()
-                        .antMatchers("/user/**").permitAll() //小程序登录放行
+                        .antMatchers("/user/**").permitAll()//小程序登录放行
+                        .antMatchers("/captcha/**").permitAll()
                         .antMatchers("/doc.html", "/webjars/**", "/swagger-resources/**", "/v3/api-docs/**").permitAll()  //swagger放行
                         .anyRequest().authenticated()
                 )

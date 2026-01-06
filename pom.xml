@@ -58,6 +58,13 @@
                 <version>${lombok}</version>
             </dependency>
 
+            <!--AJ-Captcha-->
+            <dependency>
+                <groupId>com.anji-plus</groupId>
+                <artifactId>captcha-spring-boot-starter</artifactId>
+                <version>1.4.0</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>

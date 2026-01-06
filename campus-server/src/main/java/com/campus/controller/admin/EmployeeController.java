@@ -1,5 +1,9 @@
 package com.campus.controller.admin;
 
+import com.anji.captcha.model.common.ResponseModel;
+import com.anji.captcha.model.vo.CaptchaVO;
+import com.anji.captcha.service.CaptchaService;
+import com.campus.constant.MessageConstant;
 import com.campus.dto.EmployeeDTO;
 import com.campus.dto.EmployeeLoginDTO;
 import com.campus.dto.EmployeePageQueryDTO;
@@ -28,6 +32,8 @@ public class EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
+    @Autowired
+    private CaptchaService captchaService;//注入验证码服务
 
     /*
     * 登录
@@ -36,6 +42,16 @@ public class EmployeeController {
     @ApiOperation("员工登录")
     public Result<EmployeeLoginVO> login(@RequestBody EmployeeLoginDTO employeeLoginDTO) {
         log.info("员工登录：{}", employeeLoginDTO);
+
+        CaptchaVO captchaVO = new CaptchaVO();
+        captchaVO.setCaptchaVerification(employeeLoginDTO.getCaptchaVerification());
+        //校验
+        ResponseModel check = captchaService.verification(captchaVO);
+        if (!check.isSuccess()){
+            log.info("滑动验证失败：{}",check.getRepMsg());
+            return Result.error(MessageConstant.CAPTCHA_VERIFICATION_NOT_COMPLETE);
+        }
+
         EmployeeLoginVO employeeLoginVO = employeeService.login(employeeLoginDTO);
         return Result.success(employeeLoginVO);
     }

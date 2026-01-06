@@ -1,9 +1,13 @@
 package com.campus.service.impl;
 
+import com.anji.captcha.model.common.ResponseModel;
+import com.anji.captcha.model.vo.CaptchaVO;
+import com.anji.captcha.service.CaptchaService;
 import com.campus.constant.JwtClaimsConstant;
 import com.campus.context.BaseContext;
 import com.campus.dto.*;
 import com.campus.properties.JwtProperties;
+import com.campus.result.Result;
 import com.campus.security.LoginUser;
 import com.campus.utils.JwtUtil;
 import com.campus.vo.EmployeeLoginVO;
@@ -50,7 +54,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     @Qualifier("myRedisTemplate")
     private RedisTemplate<String, Object> redisTemplate;
-    private Employee employee;
+
 
     /**
      * 员工登录
