@@ -1,5 +1,7 @@
 package com.campus.service.impl;
 
+import com.campus.entity.es.SetmealDoc;
+import com.campus.repository.SetmealDocRepository;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.campus.constant.MessageConstant;
@@ -33,21 +35,27 @@ import java.util.List;
  * */
 @Service
 public class SetmealServiceImpl implements SetmealService {
-    @Autowired
-    private SetmealMapper setmealMapper;
-    @Autowired
-    private SetmealDishMapper setmealDishMapper;
-    @Autowired
-    private DishService dishService;
+
     @Autowired
     private DishMapper dishMapper;
+
+    @Autowired
+    private DishService dishService;
+
+    @Autowired
+    private SetmealMapper setmealMapper;
+
+    @Autowired
+    private SetmealDishMapper setmealDishMapper;
+
+    @Autowired
+    private SetmealDocRepository setmealDocRepository;
 
     /*
      * 新增套餐
      * */
     @Transactional
     public void insertSetmealWithDish(SetmealDTO setmealDTO) {
-
         //新增套餐数据
         Setmeal setmeal = new Setmeal();
         //对象属性拷贝
@@ -56,7 +64,6 @@ public class SetmealServiceImpl implements SetmealService {
         setmealMapper.insert(setmeal);
 
         //增加菜品信息时，要先查询出菜品
-
         dishService.getDishByCategoryId(setmealDTO.getCategoryId());
 
         //新增套餐关联的菜品信息
@@ -68,6 +75,10 @@ public class SetmealServiceImpl implements SetmealService {
 
         setmealDishMapper.insertBySetmealId(setmealDishes);
 
+        //同步到es
+        SetmealDoc setmealDoc = new SetmealDoc();
+        BeanUtils.copyProperties(setmeal,setmealDoc);
+        setmealDocRepository.save(setmealDoc);
 
     }
 
@@ -75,7 +86,7 @@ public class SetmealServiceImpl implements SetmealService {
     /*
      * 套餐分页查询
      * */
-    @Override
+    @Transactional
     public PageResult page(SetmealPageQueryDTO setmealPageQueryDTO) {
         //开始分页
         PageHelper.startPage(setmealPageQueryDTO.getPage(), setmealPageQueryDTO.getPageSize());
@@ -88,7 +99,7 @@ public class SetmealServiceImpl implements SetmealService {
     /*
      * 起售停售套餐
      * */
-    @Override
+    @Transactional
     public void startOrStop(Integer status, Long id) {
         //当前套餐中有菜品未起售则不能起售
         List<Dish> dishes = dishMapper.getBySetmealId(id);
@@ -100,14 +111,17 @@ public class SetmealServiceImpl implements SetmealService {
             }
         }
 
-
         //根据id查询套餐
         Setmeal setmeal = setmealMapper.selectById(id);
-
         setmeal.setStatus(status);
 
         //修改数据
         setmealMapper.update(setmeal);
+
+        //同步到es
+        SetmealDoc setmealDoc = new SetmealDoc();
+        BeanUtils.copyProperties(setmeal,setmealDoc);
+        setmealDocRepository.save(setmealDoc);
 
     }
 
@@ -142,6 +156,8 @@ public class SetmealServiceImpl implements SetmealService {
         //批量删除 setmeal_dish 中关联的菜品(根据setmeal_id)
         setmealDishMapper.delete(ids);
 
+        //同步到es
+        setmealDocRepository.deleteAllById(ids);
 
     }
 
@@ -188,6 +204,11 @@ public class SetmealServiceImpl implements SetmealService {
         setmealDishes.forEach(setmealDish -> setmealDish.setSetmealId(setmealId));
 
         setmealDishMapper.insertBySetmealId(setmealDishes);
+
+        //同步到es
+        SetmealDoc setmealDoc = new SetmealDoc();
+        BeanUtils.copyProperties(setmeal,setmealDoc);
+        setmealDocRepository.save(setmealDoc);
 
     }
 

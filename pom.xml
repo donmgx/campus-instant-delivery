@@ -52,6 +52,7 @@
                 <artifactId>spring-boot-starter-security</artifactId>
                 <version>2.7.3</version>
             </dependency>
+
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
@@ -63,6 +64,18 @@
                 <groupId>com.anji-plus</groupId>
                 <artifactId>captcha-spring-boot-starter</artifactId>
                 <version>1.4.0</version>
+            </dependency>
+            <!--RabbitMQ-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-amqp</artifactId>
+                <version>2.7.3</version>
+            </dependency>
+            <!--ES-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+                <version>2.7.3</version>
             </dependency>
 
             <dependency>

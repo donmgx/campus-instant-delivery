@@ -2,6 +2,8 @@ package com.campus.controller.user;
 
 import com.campus.constant.StatusConstant;
 import com.campus.entity.Dish;
+import com.campus.entity.es.DishDoc;
+import com.campus.repository.DishDocRepository;
 import com.campus.result.Result;
 import com.campus.service.DishService;
 import com.campus.vo.DishVO;
@@ -27,6 +29,9 @@ public class DishController {
     @Autowired
     @Qualifier("myRedisTemplate")
     private RedisTemplate<String,Object> redisTemplate;
+
+    @Autowired
+    private DishDocRepository dishDocRepository;
 
     /**
      * 根据分类id查询菜品
@@ -57,6 +62,18 @@ public class DishController {
         list = dishService.listWithFlavor(dish);
         redisTemplate.opsForValue().set(key, list);
 
+        return Result.success(list);
+    }
+
+    /*
+    * es菜品模糊搜索,用于搜索栏
+    * */
+    @GetMapping("/search")
+    @ApiOperation("菜品搜索(ES)")
+    public Result<List<DishDoc>> search(String keyWord) {
+        log.info("用户搜索菜品: {}", keyWord);
+        //调用ES查询：关键字匹配 + 状态为起售
+        List<DishDoc> list = dishDocRepository.searchByKeyword(keyWord, StatusConstant.ENABLE);
         return Result.success(list);
     }
 

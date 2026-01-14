@@ -28,10 +28,13 @@ import java.util.Set;
 @RequestMapping("/admin/dish")
 @Api(tags = "菜品相关操作")
 public class DishController {
+
     @Autowired
     private DishService dishService;
+
     @Autowired
     private RedisTemplate redisTemplate;
+
 
     /*
      * 清理redis缓存

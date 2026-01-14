@@ -67,7 +67,7 @@ public class AutoFillAspect {
                 setUpdateUser.invoke(arg, currentId);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("自动填充公共字段失败: {}", e.getMessage());
             }
 
         } else if (operationType == OperationType.UPDATE) {
@@ -81,7 +81,7 @@ public class AutoFillAspect {
                 setUpdateUser.invoke(arg, currentId);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("自动填充公共字段失败: {}", e.getMessage());
             }
         }
     }

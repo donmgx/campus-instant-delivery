@@ -18,7 +18,7 @@ public interface ShoppingCartMapper {
     /*
      * 根据id修改购物车数据
      * */
-    @Update("update shopping_cart set number = #{number} where id = #{id}")
+    @Update("update campus_delivery.shopping_cart set number = #{number} where id = #{id}")
     void updateNumberById(ShoppingCart cart);
 
 
@@ -31,7 +31,7 @@ public interface ShoppingCartMapper {
     /*
      * 清空购物车
      * */
-    @Delete("delete from shopping_cart where user_id = #{userId}")
+    @Delete("delete from campus_delivery.shopping_cart where user_id = #{userId}")
     void delete(Long userId);
 
 

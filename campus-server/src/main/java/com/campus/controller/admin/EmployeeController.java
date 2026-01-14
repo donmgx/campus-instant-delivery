@@ -43,14 +43,14 @@ public class EmployeeController {
     public Result<EmployeeLoginVO> login(@RequestBody EmployeeLoginDTO employeeLoginDTO) {
         log.info("员工登录：{}", employeeLoginDTO);
 
-        CaptchaVO captchaVO = new CaptchaVO();
+        /*CaptchaVO captchaVO = new CaptchaVO();
         captchaVO.setCaptchaVerification(employeeLoginDTO.getCaptchaVerification());
         //校验
         ResponseModel check = captchaService.verification(captchaVO);
         if (!check.isSuccess()){
             log.info("滑动验证失败：{}",check.getRepMsg());
             return Result.error(MessageConstant.CAPTCHA_VERIFICATION_NOT_COMPLETE);
-        }
+        }*/
 
         EmployeeLoginVO employeeLoginVO = employeeService.login(employeeLoginDTO);
         return Result.success(employeeLoginVO);

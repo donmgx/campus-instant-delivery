@@ -26,7 +26,7 @@ public class MessageConstant {
     public static final String DISH_BE_RELATED_BY_SETMEAL = "当前菜品关联了套餐,不能删除";
     public static final String ORDER_STATUS_ERROR = "订单状态错误";
     public static final String ORDER_NOT_FOUND = "订单不存在";
-    public static final String DISH_NOT_FAILED_BECAUSE_SETMEAL= "套餐已启售，菜品不能停售";
+    public static final String DISH_NOT_FAILED_BECAUSE_SETMEAL = "套餐已启售，菜品不能停售";
     public static final String ORDER_TIMEOUT = "订单超时，自动取消";
     public static final String PICK_UP_IN_STORE = "到店自取";
     public static final String TAKEAWAY_DELIVERY = "外卖配送";
@@ -38,6 +38,16 @@ public class MessageConstant {
     public static final String TOKEN_EXPIRED_OR_BELONGS_TO_OTHERS = "Token已过期或属于其他用户";
     public static final String TOKEN_NOT_EXIST = "Token不存在";
     public static final String CAPTCHA_VERIFICATION_NOT_COMPLETE = "请先完成滑动验证";
-
-
+    public static final String COUPON_NOT_EXIST = "优惠券不存在";
+    public static final String COUPON_IS_ONGOING = "活动正在进行";
+    public static final String COUPON_REMAINCOUNT_IS_ZERO = "优惠券库存为零";
+    public static final String COUPON_IS_ENDED = "活动已结束，禁止修改";
+    public static final String REPEAT_CLAIM = "亲，您已经领取过了呦";
+    public static final String COUPONS_HAVE_BEEN_SNAPPED_UP = "手慢了，优惠券已抢光";
+    public static final String COUPON_CLAIM_SUCCESS = "抢购成功";
+    public static final String COUPON_STATUS_ERROR = "优惠未开始或已结束";
+    public static final String COUPON_USED_OR_EXPIRED = "优惠已使用或已过期";
+    public static final String COUPON_THRESHOLD_NOT_REACHED = "未达到优惠券使用门槛";
+    public static final String COUPON_RECOMMENDED = "已自动为您选取最佳优惠券";
+    public static final String COUPON_NO_AVAILABLE = "暂无可用优惠券";
 }

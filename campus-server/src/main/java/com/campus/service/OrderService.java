@@ -2,10 +2,7 @@ package com.campus.service;
 
 import com.campus.dto.*;
 import com.campus.result.PageResult;
-import com.campus.vo.OrderPaymentVO;
-import com.campus.vo.OrderStatisticsVO;
-import com.campus.vo.OrderSubmitVO;
-import com.campus.vo.OrderVO;
+import com.campus.vo.*;
 
 public interface OrderService {
 
@@ -99,4 +96,10 @@ public interface OrderService {
      * 催单
      * */
     void remider(Long id);
+
+    /*
+     * 预计算支付价格
+     * */
+    OrderCalculateVO calculate();
+
 }

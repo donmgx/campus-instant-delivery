@@ -25,7 +25,7 @@ public interface OrderMapper {
      *
      * @param orderNumber
      */
-    @Select("select * from orders where number = #{orderNumber}")
+    @Select("select * from campus_delivery.orders where number = #{orderNumber}")
     Orders getByNumber(String orderNumber);
 
     /**
@@ -39,7 +39,7 @@ public interface OrderMapper {
     /*
      * 查询订单表
      * */
-    @Select("select * from orders where id = #{id}")
+    @Select("select * from campus_delivery.orders where id = #{id}")
     Orders getById(Long id);
 
 
@@ -52,7 +52,7 @@ public interface OrderMapper {
     /*
      * 根据订单状态查询订单数量
      * */
-    @Select("Select * from orders where status = #{status}")
+    @Select("Select * from campus_delivery.orders where status = #{status}")
     Integer countByStatus(Integer status);
 
 
@@ -60,7 +60,7 @@ public interface OrderMapper {
     *
     * 根据订单状态和定单时间查询
     * */
-    @Select("select * from orders where status = #{status} and order_time < #{orderTime}")
+    @Select("select * from campus_delivery.orders where status = #{status} and order_time < #{orderTime}")
     List<Orders> getByStatusAndOrderTime(Integer status, LocalDateTime orderTime);
 
 

@@ -2,6 +2,9 @@ package com.campus.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.campus.constant.StatusConstant;
+import com.campus.exception.BaseException;
+import com.campus.vo.*;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.xiaoymin.knife4j.core.util.CollectionUtils;
@@ -16,13 +19,10 @@ import com.campus.mapper.*;
 import com.campus.result.PageResult;
 import com.campus.service.OrderService;
 import com.campus.utils.WeChatPayUtil;
-import com.campus.vo.OrderPaymentVO;
-import com.campus.vo.OrderStatisticsVO;
-import com.campus.vo.OrderSubmitVO;
-import com.campus.vo.OrderVO;
 
 import com.campus.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.splitmap.AbstractIterableGetMapDecorator;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,19 +42,32 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
     private OrderMapper orderMapper;
+
     @Autowired
-    private OrderDetailMapper orderDetailMapper;
-    @Autowired
-    private AddressBookMapper addressBookMapper;
-    @Autowired
-    private ShoppingCartMapper shoppingCartMapper;
+    private CouponMapper couponMapper;
+
     @Autowired
     private WeChatPayUtil weChatPayUtil;
-    @Autowired
-    private UserMapper userMapper;
+
     @Autowired
     private WebSocketServer webSocketServer;
+
+    @Autowired
+    private UserCouponMapper userCouponMapper;
+
+    @Autowired
+    private AddressBookMapper addressBookMapper;
+
+    @Autowired
+    private OrderDetailMapper orderDetailMapper;
+
+    @Autowired
+    private ShoppingCartMapper shoppingCartMapper;
+
 
     /*
      * 用户下单
@@ -68,10 +81,10 @@ public class OrderServiceImpl implements OrderService {
         //判断取餐方式
         if (ordersSubmitDTO.getDeliveryMode() == 0) {
             //如果是到店自取，则不需要配送
-            if (ordersSubmitDTO.getTableNumber() != null){
+            if (ordersSubmitDTO.getTableNumber() != null) {
                 //如果是扫码点餐
-                orders.setAddress(MessageConstant.TABLE_NUMBER+":"+ordersSubmitDTO.getTableNumber());
-            }else {
+                orders.setAddress(MessageConstant.TABLE_NUMBER + ":" + ordersSubmitDTO.getTableNumber());
+            } else {
                 //到店自取
                 orders.setAddress(MessageConstant.PICK_UP_IN_STORE);
             }
@@ -96,8 +109,67 @@ public class OrderServiceImpl implements OrderService {
             throw new ShoppingCartBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
         }
 
+        //获取购物车商品的原价
+        BigDecimal originalAmount = new BigDecimal(0);
+        for (ShoppingCart cart : shoppingCarts) {
+            //原本单价
+            BigDecimal itemPrice = cart.getAmount();
+            //每个购买数量
+            BigDecimal quantity = BigDecimal.valueOf(cart.getNumber());
+            //总原价
+            originalAmount = originalAmount.add(itemPrice.multiply(quantity));
+        }
+
+        //实际支付价钱
+        BigDecimal payAmount = originalAmount;
+        //获取用户选择的优惠券
+        Long userCouponId = ordersSubmitDTO.getUserCouponId();
+
+        //如果用户使用了优惠券
+        if (userCouponId != null) {
+            //判断优惠券是否存在且属于该用户
+            UserCoupon userCoupon = userCouponMapper.getById(userCouponId);
+            if (userCoupon == null || !userCoupon.getUserId().equals(userId)) {
+                throw new BaseException(MessageConstant.COUPON_NOT_EXIST);
+            }
+
+            //判断优惠券是否使用或过期
+            if (userCoupon.getStatus() != StatusConstant.UNUSED) {
+                throw new BaseException(MessageConstant.COUPON_USED_OR_EXPIRED);
+            }
+
+            //获取优惠券信息
+            Coupon coupon = couponMapper.getById(userCoupon.getCouponId());
+
+            //判断优惠券是否可以使用
+            if (coupon.getStatus() != StatusConstant.ONGOING) {
+                throw new BaseException(MessageConstant.COUPON_STATUS_ERROR);
+            }
+
+            //判断是否达到优惠券使用门槛
+            if (originalAmount.compareTo(coupon.getMinPoint()) < 0) {
+                throw new BaseException(MessageConstant.COUPON_THRESHOLD_NOT_REACHED);
+            }
+
+            //可以使用优惠券
+            if (coupon.getType() == StatusConstant.FULL_REDUCTION) {
+                //如果是满减类型
+                payAmount = payAmount.subtract(coupon.getAmount());
+            } else if (coupon.getType() == StatusConstant.DISCOUNT) {
+                //如果类型是折扣
+                payAmount = payAmount.multiply(coupon.getAmount()).setScale(2, BigDecimal.ROUND_HALF_UP);
+            }
+
+            //防止金额为负数
+            if (payAmount.compareTo(BigDecimal.ZERO) < 0) {
+                payAmount = BigDecimal.ZERO;
+            }
+
+        }
+
         //向订单表插入一条数据
         BeanUtils.copyProperties(ordersSubmitDTO, orders);
+        orders.setAmount(payAmount); //实际支付金额
         orders.setUserId(userId);
         orders.setOrderTime(LocalDateTime.now());
         orders.setNumber(String.valueOf(System.currentTimeMillis()));
@@ -105,6 +177,7 @@ public class OrderServiceImpl implements OrderService {
         orders.setConsignee(addressBook.getConsignee());
         orders.setStatus(Orders.PENDING_PAYMENT);
         orders.setPayStatus(Orders.UN_PAID);
+        orders.setCouponId(userCouponId); //优惠券id
 
         orderMapper.insert(orders);
 
@@ -122,6 +195,11 @@ public class OrderServiceImpl implements OrderService {
         //删除购物车
         if (orders.getStatus() != 1) {
             shoppingCartMapper.delete(userId);
+        }
+
+        //如果使用了优惠券，将优惠券标记为已使用
+        if (userCouponId != null) {
+            userCouponMapper.userCoupon(userCouponId, orders.getId(), StatusConstant.USED, LocalDateTime.now());
         }
 
         //返回OrderSubmitVO
@@ -259,40 +337,42 @@ public class OrderServiceImpl implements OrderService {
      * */
     public void concel(Long id) throws Exception {
         //先查询订单
-        Orders orders = orderMapper.getById(id);
+        Orders ordersDB = orderMapper.getById(id);
 
         // 校验订单是否存在
-        if (orders == null) {
+        if (ordersDB == null) {
             throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
         }
 
-        //- 待支付和待接单状态下，用户可直接取消订单
-        Integer status = orders.getStatus();
+        //待支付和待接单状态下，用户可直接取消订单
+        Integer status = ordersDB.getStatus();
         if (status != 1 && status != 2) {
             throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
         }
 
-        Orders orders2 = new Orders();
-        orders2.setId(orders.getId());
+        //退回优惠券
+        if (ordersDB.getCouponId() != null) {
+            userCouponMapper.returnCoupon(ordersDB.getId(), StatusConstant.UNUSED);
+        }
 
         // 订单处于待接单状态下取消，需要进行退款
-        if (orders.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
+        if (ordersDB.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
             //调用微信支付退款接口
             weChatPayUtil.refund(
-                    orders.getNumber(), //商户订单号
-                    orders.getNumber(), //商户退款单号
+                    ordersDB.getNumber(), //商户订单号
+                    ordersDB.getNumber(), //商户退款单号
                     new BigDecimal(0.01),//退款金额，单位 元
                     new BigDecimal(0.01));//原订单金额
 
             //支付状态修改为 退款
-            orders2.setPayStatus(Orders.REFUND);
+            ordersDB.setPayStatus(Orders.REFUND);
         }
 
         // 更新订单状态、取消原因、取消时间
-        orders2.setStatus(Orders.CANCELLED);
-        orders2.setCancelReason("用户取消");
-        orders2.setCancelTime(LocalDateTime.now());
-        orderMapper.update(orders2);
+        ordersDB.setStatus(Orders.CANCELLED);
+        ordersDB.setCancelReason("用户取消");
+        ordersDB.setCancelTime(LocalDateTime.now());
+        orderMapper.update(ordersDB);
 
     }
 
@@ -536,5 +616,95 @@ public class OrderServiceImpl implements OrderService {
         String json = JSON.toJSONString(map);
 
         webSocketServer.sendToAllClient(json);
+    }
+
+
+    /*
+     * 预计算支付价格
+     * */
+    public OrderCalculateVO calculate() {
+        //获取该用户信息
+        Long userId = BaseContext.getCurrentId();
+        //获取购物车数据
+        ShoppingCart shoppingCart = ShoppingCart.builder()
+                .userId(userId)
+                .build();
+        List<ShoppingCart> shoppingCarts = shoppingCartMapper.list(shoppingCart);
+
+        if (shoppingCarts == null) {
+            //如果购物车为空，直接返回0
+            return OrderCalculateVO.builder()
+                    .originalAmount(BigDecimal.ZERO)
+                    .discountAmount(BigDecimal.ZERO)
+                    .payAmount(BigDecimal.ZERO)
+                    .desc(MessageConstant.SHOPPING_CART_IS_NULL)
+                    .build();
+        }
+
+        //计算原价
+        BigDecimal goodsAmount = BigDecimal.ZERO;
+        for (ShoppingCart cart : shoppingCarts) {
+            BigDecimal amount = cart.getAmount();
+            BigDecimal number = BigDecimal.valueOf(cart.getNumber());
+            goodsAmount = goodsAmount.add(amount.multiply(number));
+        }
+        //打包费
+        BigDecimal packAmount = new BigDecimal(0);
+        BigDecimal totalAmount = goodsAmount.add(packAmount);
+
+        //贪心算法：寻找最大折扣优惠券
+        //初始最大优惠券id
+        Long bestCouponId = null;
+        //初始最大折扣金额
+        BigDecimal maxDiscount = BigDecimal.ZERO;
+        //查询用户所有优惠券信息
+        List<UserCoupon> availableCoupons = userCouponMapper.listAvailable(userId);
+        if (availableCoupons != null) {
+            for (UserCoupon uc : availableCoupons) {
+                Coupon coupon = couponMapper.getById(uc.getCouponId());
+                //校验门槛
+                if (goodsAmount.compareTo(coupon.getMinPoint()) < 0){
+                    //如果未达到最小使用金额，直接下一轮
+                    continue;
+                }
+                //校验过期时间
+                if (uc.getEndTime() != null && LocalDateTime.now().isAfter(uc.getEndTime())){
+                    //防止脏数据
+                    continue;
+                }
+
+                //可优惠金额
+                BigDecimal currentDiscount = BigDecimal.ZERO;
+                //计算最大可优惠金额
+                if (coupon.getType() == StatusConstant.FULL_REDUCTION){
+                    //如果是满减
+                    currentDiscount = coupon.getAmount();
+                } else if (coupon.getType() == StatusConstant.DISCOUNT) {
+                    //如果是折扣
+                    currentDiscount = currentDiscount.subtract(currentDiscount.multiply(coupon.getAmount()));
+                }
+                //获取折扣更多的券
+                if (currentDiscount.compareTo(maxDiscount) > 0){
+                    maxDiscount = currentDiscount;
+                    //获取券id
+                    bestCouponId = coupon.getId();
+                }
+            }
+        }
+
+        //最大折扣后的实际价格
+        BigDecimal payAmount = totalAmount.subtract(maxDiscount);
+        //校验是否小于0
+        if (payAmount.compareTo(BigDecimal.ZERO) < 0){
+            payAmount = BigDecimal.ZERO;
+        }
+
+        return OrderCalculateVO.builder()
+                .payAmount(payAmount)
+                .discountAmount(maxDiscount)
+                .originalAmount(goodsAmount)
+                .recommendCouponId(bestCouponId)
+                .desc(bestCouponId != null?MessageConstant.COUPON_RECOMMENDED:MessageConstant.COUPON_NO_AVAILABLE)
+                .build();
     }
 }

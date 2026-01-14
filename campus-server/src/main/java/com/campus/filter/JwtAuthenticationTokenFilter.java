@@ -84,8 +84,9 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         LoginMemberCacheDTO loginMemberCacheDTO;
         String redisKey = "login_" + userId;
         try {
-            //使用 StringRedisTemplate 获取纯字符串
+
             loginMemberCacheDTO = (LoginMemberCacheDTO) redisTemplate.opsForValue().get(redisKey);
+
         } catch (Exception e) {
             log.error("从 Redis 获取用户信息失败: {}", e.getMessage());
             filterChain.doFilter(request, response);

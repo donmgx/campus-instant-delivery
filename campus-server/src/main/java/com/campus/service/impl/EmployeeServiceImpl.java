@@ -106,7 +106,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         try {
 
-            // 1. 临时创建一个 ObjectMapper
             redisTemplate.delete(redisKey);
             redisTemplate.opsForValue().set(redisKey, loginMemberCacheDTO, jwtProperties.getAdminTtl(), TimeUnit.MINUTES);
 

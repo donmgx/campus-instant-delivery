@@ -1,5 +1,7 @@
 package com.campus.service.impl;
 
+import com.campus.entity.es.DishDoc;
+import com.campus.repository.DishDocRepository;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.campus.constant.MessageConstant;
@@ -32,21 +34,27 @@ import java.util.List;
 
 @Service
 public class DishServiceImpl implements DishService {
+
     @Autowired
     private DishMapper dishMapper;
-    @Autowired
-    private DishFlavorMapper dishFlavorMapper;
-    @Autowired
-    private SetmealDishMapper setmealDishMapper;
+
     @Autowired
     private SetmealMapper setmealMapper;
+
+    @Autowired
+    private DishFlavorMapper dishFlavorMapper;
+
+    @Autowired
+    private DishDocRepository dishDocRepository;
+
+    @Autowired
+    private SetmealDishMapper setmealDishMapper;
 
 
     /*
      * 新增菜品和对应口味
      * */
     @Transactional
-    @Override
     public void saveWithFlavor(DishDTO dishDTO) {
         // 1. 新增菜品
         Dish dish = new Dish();
@@ -66,12 +74,16 @@ public class DishServiceImpl implements DishService {
             //插入n个口味
             dishFlavorMapper.insert(flavors);
         }
+
+        //同步菜品到es
+        DishDoc dishDoc = new DishDoc();
+        BeanUtils.copyProperties(dish,dishDoc);
+        dishDocRepository.save(dishDoc);
     }
 
     /*
      * 菜品的分类查询
      */
-    @Override
     public PageResult getDishPage(DishPageQueryDTO dishPageQueryDTO) {
         //开始分页
         PageHelper.startPage(dishPageQueryDTO.getPage(), dishPageQueryDTO.getPageSize());
@@ -85,7 +97,6 @@ public class DishServiceImpl implements DishService {
      * 批量删除菜品
      * */
     @Transactional
-    @Override
     public void deleteDishWithFlavor(List<Long> ids) {
         //已经起售的不能删
         for (Long id : ids) {
@@ -106,13 +117,15 @@ public class DishServiceImpl implements DishService {
 
         //同时批量删掉对应的口味
         dishFlavorMapper.deleteByDishId(ids);
+
+        //同步删除es中的菜品
+        dishDocRepository.deleteAllById(ids);
     }
 
 
     /*
      * 根据菜品 id 查询菜品和口味
      * */
-    @Override
     public DishVO getDishWithFlavor(Long id) {
         //查询菜品
         Dish dish = dishMapper.getById(id);
@@ -130,7 +143,7 @@ public class DishServiceImpl implements DishService {
     /*
      * 修改菜品
      * */
-    @Override
+    @Transactional
     public void update(DishDTO dishDTO) {
         Dish dish = new Dish();
         BeanUtils.copyProperties(dishDTO, dish);
@@ -148,12 +161,19 @@ public class DishServiceImpl implements DishService {
             //插入n个口味
             dishFlavorMapper.insert(flavors);
         }
+
+        //同步菜品到es
+        Dish dishDB = dishMapper.getById(dishDTO.getId());
+        DishDoc dishDoc = new DishDoc();
+        BeanUtils.copyProperties(dishDB,dishDoc);
+        dishDocRepository.save(dishDoc);
     }
 
 
     /*
      * 菜品起售停售
      * */
+    @Transactional
     public void startOrStop(Integer status, Long id) {
         //如果关联的套餐正起售，菜品则不能停售
         if (status == StatusConstant.DISABLE){
@@ -169,6 +189,11 @@ public class DishServiceImpl implements DishService {
         Dish dish = dishMapper.getById(id);
         dish.setStatus(status);
         dishMapper.update(dish);
+
+        //同步es
+        DishDoc dishDoc = new DishDoc();
+        BeanUtils.copyProperties(dish,dishDoc);
+        dishDocRepository.save(dishDoc);
     }
 
 

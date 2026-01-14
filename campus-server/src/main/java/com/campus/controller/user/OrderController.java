@@ -7,6 +7,7 @@ import com.campus.dto.OrdersSubmitDTO;
 import com.campus.result.PageResult;
 import com.campus.result.Result;
 import com.campus.service.OrderService;
+import com.campus.vo.OrderCalculateVO;
 import com.campus.vo.OrderPaymentVO;
 import com.campus.vo.OrderSubmitVO;
 import com.campus.vo.OrderVO;
@@ -31,7 +32,7 @@ public class OrderController {
      * */
     @ApiOperation("用户下单")
     @PostMapping("/submit")
-    @AutoIdempotent
+    @AutoIdempotent //幂等性
     public Result<OrderSubmitVO> submit(@RequestBody OrdersSubmitDTO ordersSubmitDTO) {
 
         log.info("用户下单:{}", ordersSubmitDTO);
@@ -40,6 +41,18 @@ public class OrderController {
 
         return Result.success(orderSubmitVO);
     }
+
+    /*
+    * 预计算支付价格
+    * */
+    @GetMapping("/calculate")
+    @ApiOperation("订单费用试算")
+    public Result<OrderCalculateVO> calculate(@RequestParam Long addressBookId){
+        log.info("预计算支付价格,addressBookId:{}",addressBookId);
+        OrderCalculateVO orderCalculateVO = orderService.calculate();
+        return Result.success(orderCalculateVO);
+    }
+
 
 
     /**

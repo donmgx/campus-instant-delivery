@@ -54,7 +54,6 @@ public class TokenServiceImpl implements TokenService {
             throw new BaseException(MessageConstant.TOKEN_EXPIRED_OR_BELONGS_TO_OTHERS);
         }
 
-
         //使用delete操作的返回值来保证原子性
         //如果删除成功，返回true，说明Redis里有这个key，且被当前线程抢占删除了
         Boolean delete = stringRedisTemplate.delete(token);

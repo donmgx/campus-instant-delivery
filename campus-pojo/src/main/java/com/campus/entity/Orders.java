@@ -42,6 +42,9 @@ public class Orders implements Serializable {
     //订单号
     private String number;
 
+    //优惠券 id
+    private Long couponId;
+
     //订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消 7退款
     private Integer status;
 
@@ -63,8 +66,11 @@ public class Orders implements Serializable {
     //支付状态 0未支付 1已支付 2退款
     private Integer payStatus;
 
-    //实收金额
+    //实收
     private BigDecimal amount;
+
+    //原价
+    private BigDecimal originalAmount;
 
     //备注
     private String remark;
@@ -95,6 +101,7 @@ public class Orders implements Serializable {
 
     //配送状态  1立即送出  0选择具体时间
     private Integer deliveryStatus;
+
     //配送方式  1=外卖配送 0=到店自取
     private Integer deliveryMode;
 

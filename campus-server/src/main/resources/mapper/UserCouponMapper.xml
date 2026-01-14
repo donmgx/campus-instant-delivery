@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.campus.mapper.UserCouponMapper">
+
+    <insert id="insert">
+        insert into campus_delivery.user_coupon (user_id, coupon_id, status, get_time, end_time)
+        VALUES (#{userId}, #{couponId}, #{status}, #{getTime}, #{endTime})
+    </insert>
+
+    <select id="listAvailable" resultType="com.campus.entity.UserCoupon">
+        select * from campus_delivery.user_coupon
+        <where>
+            user_id = #{userId} and status = 0 and end_time > now()
+        </where>
+    </select>
+</mapper>
