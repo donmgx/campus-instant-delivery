@@ -1,6 +1,7 @@
 package com.campus.service.impl;
 
 import com.campus.entity.es.SetmealDoc;
+import com.campus.event.SetmealChangedEvent;
 import com.campus.repository.SetmealDocRepository;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -23,10 +24,12 @@ import com.campus.vo.DishItemVO;
 import com.campus.vo.SetmealVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -49,7 +52,7 @@ public class SetmealServiceImpl implements SetmealService {
     private SetmealDishMapper setmealDishMapper;
 
     @Autowired
-    private SetmealDocRepository setmealDocRepository;
+    private ApplicationContext applicationContext;//注入Spring上下文
 
     /*
      * 新增套餐
@@ -75,10 +78,10 @@ public class SetmealServiceImpl implements SetmealService {
 
         setmealDishMapper.insertBySetmealId(setmealDishes);
 
-        //同步到es
-        SetmealDoc setmealDoc = new SetmealDoc();
-        BeanUtils.copyProperties(setmeal,setmealDoc);
-        setmealDocRepository.save(setmealDoc);
+        //发布事件
+        List<Long> ids = Collections.singletonList(setmeal.getId());
+        applicationContext.publishEvent(new SetmealChangedEvent(ids,SetmealChangedEvent.OPERATE_SYNC));
+
 
     }
 
@@ -118,10 +121,9 @@ public class SetmealServiceImpl implements SetmealService {
         //修改数据
         setmealMapper.update(setmeal);
 
-        //同步到es
-        SetmealDoc setmealDoc = new SetmealDoc();
-        BeanUtils.copyProperties(setmeal,setmealDoc);
-        setmealDocRepository.save(setmealDoc);
+        //发布事件
+        List<Long> ids = Collections.singletonList(id);
+        applicationContext.publishEvent(new SetmealChangedEvent(ids,SetmealChangedEvent.OPERATE_SYNC));
 
     }
 
@@ -156,8 +158,8 @@ public class SetmealServiceImpl implements SetmealService {
         //批量删除 setmeal_dish 中关联的菜品(根据setmeal_id)
         setmealDishMapper.delete(ids);
 
-        //同步到es
-        setmealDocRepository.deleteAllById(ids);
+        //发布事件
+        applicationContext.publishEvent(new SetmealChangedEvent(ids,SetmealChangedEvent.OPERATE_DELETE));
 
     }
 
@@ -205,10 +207,9 @@ public class SetmealServiceImpl implements SetmealService {
 
         setmealDishMapper.insertBySetmealId(setmealDishes);
 
-        //同步到es
-        SetmealDoc setmealDoc = new SetmealDoc();
-        BeanUtils.copyProperties(setmeal,setmealDoc);
-        setmealDocRepository.save(setmealDoc);
+        //发布事件
+        List<Long> syncIds = Collections.singletonList(setmeal.getId());
+        applicationContext.publishEvent(new SetmealChangedEvent(syncIds,SetmealChangedEvent.OPERATE_SYNC));
 
     }
 

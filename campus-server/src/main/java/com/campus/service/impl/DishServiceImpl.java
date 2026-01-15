@@ -1,6 +1,7 @@
 package com.campus.service.impl;
 
 import com.campus.entity.es.DishDoc;
+import com.campus.event.DishChangedEvent;
 import com.campus.repository.DishDocRepository;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -22,10 +23,12 @@ import com.campus.service.DishService;
 import com.campus.vo.DishVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 /*
  * 菜品相关操作
@@ -45,10 +48,10 @@ public class DishServiceImpl implements DishService {
     private DishFlavorMapper dishFlavorMapper;
 
     @Autowired
-    private DishDocRepository dishDocRepository;
+    private SetmealDishMapper setmealDishMapper;
 
     @Autowired
-    private SetmealDishMapper setmealDishMapper;
+    private ApplicationContext applicationContext; //注入Spring上下文用于发事件
 
 
     /*
@@ -75,10 +78,10 @@ public class DishServiceImpl implements DishService {
             dishFlavorMapper.insert(flavors);
         }
 
-        //同步菜品到es
-        DishDoc dishDoc = new DishDoc();
-        BeanUtils.copyProperties(dish,dishDoc);
-        dishDocRepository.save(dishDoc);
+        //发布事件
+        List<Long> ids = Collections.singletonList(dishId);
+        applicationContext.publishEvent(new DishChangedEvent(ids,DishChangedEvent.OPERATE_SYNC));
+
     }
 
     /*
@@ -118,8 +121,8 @@ public class DishServiceImpl implements DishService {
         //同时批量删掉对应的口味
         dishFlavorMapper.deleteByDishId(ids);
 
-        //同步删除es中的菜品
-        dishDocRepository.deleteAllById(ids);
+        //发布事件
+        applicationContext.publishEvent(new DishChangedEvent(ids,DishChangedEvent.OPERATE_DELETE));
     }
 
 
@@ -162,11 +165,9 @@ public class DishServiceImpl implements DishService {
             dishFlavorMapper.insert(flavors);
         }
 
-        //同步菜品到es
-        Dish dishDB = dishMapper.getById(dishDTO.getId());
-        DishDoc dishDoc = new DishDoc();
-        BeanUtils.copyProperties(dishDB,dishDoc);
-        dishDocRepository.save(dishDoc);
+        //发布事件
+        List<Long> ids = Collections.singletonList(dish.getId());
+        applicationContext.publishEvent(new DishChangedEvent(ids,DishChangedEvent.OPERATE_SYNC));
     }
 
 
@@ -176,11 +177,11 @@ public class DishServiceImpl implements DishService {
     @Transactional
     public void startOrStop(Integer status, Long id) {
         //如果关联的套餐正起售，菜品则不能停售
-        if (status == StatusConstant.DISABLE){
+        if (status == StatusConstant.DISABLE) {
             //查询该菜品id关联的套餐
             List<Setmeal> setmeals = setmealMapper.getByDishId(id);
-            for (Setmeal setmeal:setmeals){
-                if (setmeal.getStatus() == StatusConstant.ENABLE){
+            for (Setmeal setmeal : setmeals) {
+                if (setmeal.getStatus() == StatusConstant.ENABLE) {
                     throw new SetmealEnableFailedException(MessageConstant.DISH_NOT_FAILED_BECAUSE_SETMEAL);
                 }
             }
@@ -190,10 +191,9 @@ public class DishServiceImpl implements DishService {
         dish.setStatus(status);
         dishMapper.update(dish);
 
-        //同步es
-        DishDoc dishDoc = new DishDoc();
-        BeanUtils.copyProperties(dish,dishDoc);
-        dishDocRepository.save(dishDoc);
+        //发布事件
+        List<Long> ids = Collections.singletonList(id);
+        applicationContext.publishEvent(new DishChangedEvent(ids,DishChangedEvent.OPERATE_SYNC));
     }
 
 
@@ -208,6 +208,7 @@ public class DishServiceImpl implements DishService {
 
     /**
      * 条件查询菜品和口味
+     *
      * @param dish
      * @return
      */
@@ -218,7 +219,7 @@ public class DishServiceImpl implements DishService {
 
         for (Dish d : dishList) {
             DishVO dishVO = new DishVO();
-            BeanUtils.copyProperties(d,dishVO);
+            BeanUtils.copyProperties(d, dishVO);
 
             //根据菜品id查询对应的口味
             List<DishFlavor> flavors = dishFlavorMapper.getByDishId(d.getId());
