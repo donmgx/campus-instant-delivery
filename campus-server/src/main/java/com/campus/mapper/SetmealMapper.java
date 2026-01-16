@@ -16,7 +16,7 @@ import java.util.Map;
 @Mapper
 public interface SetmealMapper {
 
-    @Select("select count(*) from setmeal where category_id = #{id}")
+    @Select("select count(*) from campus_delivery.setmeal where category_id = #{id}")
     Integer countByCategoryId(Long id);
 
     /*
@@ -34,7 +34,7 @@ public interface SetmealMapper {
     /*
     根据id查询套餐
     * */
-    @Select("select * from setmeal where id = #{id}")
+    @Select("select * from campus_delivery.setmeal where id = #{id}")
     Setmeal selectById(Long id);
 
     /*
@@ -53,7 +53,7 @@ public interface SetmealMapper {
     *
     * 根据菜品id查询关联的套餐
     * */
-    @Select("select s.* from setmeal s left join setmeal_dish sd on s.id = sd.setmeal_id where sd.dish_id = #{dishId}")
+    @Select("select s.* from campus_delivery.setmeal s left join campus_delivery.setmeal_dish sd on s.id = sd.setmeal_id where sd.dish_id = #{dishId}")
     List<Setmeal> getByDishId(Long dishId);
 
 
@@ -71,7 +71,7 @@ public interface SetmealMapper {
      * @return
      */
     @Select("select sd.name, sd.copies, d.image, d.description " +
-            "from setmeal_dish sd left join dish d on sd.dish_id = d.id " +
+            "from campus_delivery.setmeal_dish sd left join campus_delivery.dish d on sd.dish_id = d.id " +
             "where sd.setmeal_id = #{setmealId}")
     List<DishItemVO> getDishItemBySetmealId(Long setmealId);
 

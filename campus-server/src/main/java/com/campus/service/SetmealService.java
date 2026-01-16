@@ -1,5 +1,6 @@
 package com.campus.service;
 
+import com.campus.constant.StatusConstant;
 import com.campus.dto.SetmealDTO;
 import com.campus.dto.SetmealPageQueryDTO;
 import com.campus.entity.Setmeal;
@@ -53,10 +54,8 @@ public interface SetmealService {
 
     /**
      * 条件查询
-     * @param setmeal
-     * @return
      */
-    List<Setmeal> list(Setmeal setmeal);
+    List<Setmeal> list(Long categoryId);
 
 
     /**

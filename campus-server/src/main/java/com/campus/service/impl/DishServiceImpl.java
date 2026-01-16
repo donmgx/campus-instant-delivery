@@ -1,8 +1,7 @@
 package com.campus.service.impl;
 
-import com.campus.entity.es.DishDoc;
 import com.campus.event.DishChangedEvent;
-import com.campus.repository.DishDocRepository;
+import com.campus.exception.BaseException;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.campus.constant.MessageConstant;
@@ -21,6 +20,8 @@ import com.campus.mapper.SetmealMapper;
 import com.campus.result.PageResult;
 import com.campus.service.DishService;
 import com.campus.vo.DishVO;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBloomFilter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -35,6 +36,7 @@ import java.util.List;
  *
  * */
 
+@Slf4j
 @Service
 public class DishServiceImpl implements DishService {
 
@@ -43,6 +45,9 @@ public class DishServiceImpl implements DishService {
 
     @Autowired
     private SetmealMapper setmealMapper;
+
+    @Autowired
+    private RBloomFilter<Long> dishBloomFilter;
 
     @Autowired
     private DishFlavorMapper dishFlavorMapper;
@@ -130,6 +135,12 @@ public class DishServiceImpl implements DishService {
      * 根据菜品 id 查询菜品和口味
      * */
     public DishVO getDishWithFlavor(Long id) {
+        //第一道防线：布隆过滤器
+        if (!dishBloomFilter.contains(id)){
+            log.info("布隆过滤器拦截恶意请求，Dish ID: {}", id);
+            throw new BaseException(MessageConstant.DISH_NOT_FOUND);
+        }
+
         //查询菜品
         Dish dish = dishMapper.getById(id);
         //查询口味

@@ -10,7 +10,7 @@
     </insert>
 
     <select id="countByMap" resultType="java.lang.Integer">
-        select count(id) from user
+        select count(id) from campus_delivery.user
         <where>
             <if test="begin != null">
                 and create_time &gt; #{begin}

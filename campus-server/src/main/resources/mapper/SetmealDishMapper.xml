@@ -4,7 +4,7 @@
 <mapper namespace="com.campus.mapper.SetmealDishMapper">
 
     <select id="selectByDishId" resultType="java.lang.Long">
-        select * from setmeal_dish where dish_id in
+        select * from campus_delivery.setmeal_dish where dish_id in
         <foreach collection="dishIds" separator="," item="dishId" open="(" close=")">
             #{dishId}
         </foreach>
@@ -12,7 +12,7 @@
 
 
     <insert id="insertBySetmealId">
-        insert into setmeal_dish (setmeal_id, dish_id, name, price, copies)
+        insert into campus_delivery.setmeal_dish (setmeal_id, dish_id, name, price, copies)
         values
         <foreach collection="setmealDishes" item="setmealDish" separator=",">
             (#{setmealDish.setmealId}, #{setmealDish.dishId}, #{setmealDish.name}, #{setmealDish.price}, #{setmealDish.copies})
@@ -21,7 +21,7 @@
 
 
     <delete id="delete">
-        delete from setmeal_dish where setmeal_id in
+        delete from campus_delivery.setmeal_dish where setmeal_id in
         <foreach collection="setmealIds" open="(" close=")" separator="," item="setmealId">
             #{setmealId}
         </foreach>

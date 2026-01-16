@@ -29,7 +29,7 @@ public interface SetmealDishMapper {
     /*
     * 根据setmealId查询关联的setmealDishs
     * */
-    @Select("select * from setmeal_dish where setmeal_id = #{setmealId}")
+    @Select("select * from campus_delivery.setmeal_dish where setmeal_id = #{setmealId}")
     List<SetmealDish> selectBySetmealId(Long setmealId);
 
 

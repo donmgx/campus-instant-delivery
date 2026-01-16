@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.campus.mapper.DishFlavorMapper">
     <insert id="insert">
-        insert into dish_flavor (dish_id, name, value)
+        insert into campus_delivery.dish_flavor (dish_id, name, value)
         values
         <foreach collection="flavors" item="df" separator=",">
             (#{df.dishId}, #{df.name}, #{df.value})
@@ -12,7 +12,7 @@
     </insert>
 
     <delete id="deleteByDishId">
-        delete from dish_flavor where dish_id in
+        delete from campus_delivery.dish_flavor where dish_id in
         <foreach collection="dishIds" separator="," item="dishId" open="(" close=")">
             #{dishId}
         </foreach>

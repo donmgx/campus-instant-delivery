@@ -5,8 +5,8 @@
 
     <select id="selectPermissionByRoleId" resultType="String">
         select p.path
-        from sys_role_permission rp
-                 join sys_permission p on rp.permission_id = p.id
+        from campus_delivery.sys_role_permission rp
+                 join campus_delivery.sys_permission p on rp.permission_id = p.id
         where rp.role_id = #{roleId}
     </select>
 </mapper>

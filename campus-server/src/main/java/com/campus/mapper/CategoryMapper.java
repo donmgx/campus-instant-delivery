@@ -36,20 +36,20 @@ public interface CategoryMapper {
     void update(Category category);
 
     @AutoFill(value = OperationType.INSERT)
-    @Insert("insert into category (type, name, sort, status, create_time, update_time, create_user, update_user) " +
+    @Insert("insert into campus_delivery.category (type, name, sort, status, create_time, update_time, create_user, update_user) " +
             "values (#{type},#{name},#{sort},#{status},#{createTime},#{updateTime},#{createUser},#{updateUser})")
     void insert(Category category);
 
     /*
     * 根据id查询关联的菜品或套餐
     * */
-    @Select("select * from dish where category_id = #{id} union all select * from setmeal where category_id = #{id} ")
+    @Select("select * from campus_delivery.dish where category_id = #{id} union all select * from campus_delivery.setmeal where category_id = #{id} ")
     List<Object> select(Long id);
 
     /*
     * 根据id删除分类
     * */
-    @Delete("delete from category where id  = #{id}")
+    @Delete("delete from campus_delivery.category where id  = #{id}")
     void delete(Long id);
 
 

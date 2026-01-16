@@ -4,7 +4,7 @@
 <mapper namespace="com.campus.mapper.SetmealMapper">
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into setmeal (category_id, name, price, status, description, image, create_time, update_time, create_user,
+        insert into campus_delivery.setmeal (category_id, name, price, status, description, image, create_time, update_time, create_user,
                              update_user)
         values (#{categoryId}, #{name}, #{price}, #{status}, #{description}, #{image}, #{createTime}, #{updateTime},
                 #{createUser}, #{updateUser})
@@ -12,7 +12,7 @@
 
 
     <select id="selectSetmealWithCategory" resultType="com.campus.vo.SetmealVO">
-        select s.*,c.name as categoryName from setmeal s left join category c on s.category_id = c.id
+        select s.*,c.name as categoryName from campus_delivery.setmeal s left join campus_delivery.category c on s.category_id = c.id
         <where>
             <if test="categoryId != null">s.category_id = #{categoryId} </if>
             <if test="name != null">and s.name like concat('%', #{name},'%')</if>
@@ -23,7 +23,7 @@
 
 
     <update id="update">
-        update setmeal
+        update campus_delivery.setmeal
         <set>
             <if test="categoryId != null">category_id = #{categoryId},</if>
             <if test="name != null">name = #{name},</if>
@@ -36,14 +36,14 @@
     </update>
 
     <delete id="delete">
-        delete from setmeal where id in
+        delete from campus_delivery.setmeal where id in
         <foreach collection="ids" item="id" separator="," close=")" open="(">
             #{id}
         </foreach>
     </delete>
 
     <select id="list" parameterType="Setmeal" resultType="Setmeal">
-        select * from setmeal
+        select * from campus_delivery.setmeal
         <where>
             <if test="name != null">
                 and name like concat('%',#{name},'%')
@@ -57,7 +57,7 @@
         </where>
     </select>
     <select id="countByMap" resultType="java.lang.Integer">
-        select count(id) from setmeal
+        select count(id) from campus_delivery.setmeal
         <where>
             <if test="status != null">
                 and status = #{status}

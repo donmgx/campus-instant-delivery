@@ -20,7 +20,7 @@ public interface DishMapper {
      * 根据id查询菜品的数量
      *
      * */
-    @Select("select count(*) from dish where category_id = #{id}")
+    @Select("select count(*) from campus_delivery.dish where category_id = #{id}")
     Integer countByCategoryId(Long id);
 
 
@@ -45,7 +45,7 @@ public interface DishMapper {
     /*
     * 根据菜品id 查询数据
     * */
-    @Select("select * from dish where id = #{id}")
+    @Select("select * from campus_delivery.dish where id = #{id}")
     Dish getById(Long id);
 
     /*
@@ -57,7 +57,7 @@ public interface DishMapper {
     /*
      * 根据分类id查询菜品
      * */
-    @Select("select * from dish where category_id = #{categoryId}")
+    @Select("select * from campus_delivery.dish where category_id = #{categoryId}")
     List<Dish> getDishByCategoryId(Long categoryId);
 
 
@@ -65,7 +65,7 @@ public interface DishMapper {
     * 根据套餐id查询旗下的菜品
     *
     * */
-    @Select("select d.* from dish d left join setmeal_dish s on d.id = s.dish_id where s.setmeal_id = #{setmealId}")
+    @Select("select d.* from campus_delivery.dish d left join campus_delivery.setmeal_dish s on d.id = s.dish_id where s.setmeal_id = #{setmealId}")
     List<Dish> getBySetmealId(Long setmealId);
 
 
@@ -83,6 +83,5 @@ public interface DishMapper {
      * @return
      */
     Integer countByMap(Map map);
-
 
 }

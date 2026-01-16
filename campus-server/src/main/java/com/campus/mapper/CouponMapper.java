@@ -10,6 +10,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+import java.util.List;
+
 @Mapper
 public interface CouponMapper {
 
@@ -45,5 +47,13 @@ public interface CouponMapper {
     * */
     @Update("update campus_delivery.coupon set remaining_count = #{redisStock} where id = #{couponId}")
     void updateStock(Long couponId, int redisStock);
+
+
+    /*
+    * 查询所有优惠券
+    * */
+    @Select("select * from campus_delivery.coupon")
+    List<Coupon> list(Coupon coupon);
+
 
 }

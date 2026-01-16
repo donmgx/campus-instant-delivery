@@ -6,6 +6,7 @@ import com.campus.event.DishChangedEvent;
 import com.campus.mapper.DishMapper;
 import com.campus.repository.DishDocRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBloomFilter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -28,8 +29,10 @@ public class DishEsSyncListener {
     private DishMapper dishMapper;
 
     @Autowired
-    private DishDocRepository dishDocRepository;
+    private RBloomFilter<Long> dishBloomFilter;
 
+    @Autowired
+    private DishDocRepository dishDocRepository;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -52,6 +55,8 @@ public class DishEsSyncListener {
                     BeanUtils.copyProperties(dish, dishDoc);
 
                     dishDocs.add(dishDoc);
+                    //同步到布隆过滤器
+                    dishBloomFilter.add(dishId);
                 }
             }
 

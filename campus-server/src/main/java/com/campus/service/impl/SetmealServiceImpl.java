@@ -1,8 +1,7 @@
 package com.campus.service.impl;
 
-import com.campus.entity.es.SetmealDoc;
 import com.campus.event.SetmealChangedEvent;
-import com.campus.repository.SetmealDocRepository;
+import com.campus.exception.BaseException;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.campus.constant.MessageConstant;
@@ -22,9 +21,13 @@ import com.campus.service.DishService;
 import com.campus.service.SetmealService;
 import com.campus.vo.DishItemVO;
 import com.campus.vo.SetmealVO;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBloomFilter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +39,7 @@ import java.util.List;
 /*
  * 套餐相关操作
  * */
+@Slf4j
 @Service
 public class SetmealServiceImpl implements SetmealService {
 
@@ -49,10 +53,20 @@ public class SetmealServiceImpl implements SetmealService {
     private SetmealMapper setmealMapper;
 
     @Autowired
+    private RBloomFilter<Long> setmealBloomFilter;
+
+    @Autowired
     private SetmealDishMapper setmealDishMapper;
 
     @Autowired
     private ApplicationContext applicationContext;//注入Spring上下文
+
+    @Autowired
+    @Qualifier("myRedisTemplate")
+    private RedisTemplate<String, Object> redisTemplate;
+
+    private static final String SETMEAL_KEY = "setmealCache";
+    private static final String SETMEAL_FIELD = "setmealCache::";
 
     /*
      * 新增套餐
@@ -80,7 +94,7 @@ public class SetmealServiceImpl implements SetmealService {
 
         //发布事件
         List<Long> ids = Collections.singletonList(setmeal.getId());
-        applicationContext.publishEvent(new SetmealChangedEvent(ids,SetmealChangedEvent.OPERATE_SYNC));
+        applicationContext.publishEvent(new SetmealChangedEvent(ids, SetmealChangedEvent.OPERATE_SYNC));
 
 
     }
@@ -123,7 +137,7 @@ public class SetmealServiceImpl implements SetmealService {
 
         //发布事件
         List<Long> ids = Collections.singletonList(id);
-        applicationContext.publishEvent(new SetmealChangedEvent(ids,SetmealChangedEvent.OPERATE_SYNC));
+        applicationContext.publishEvent(new SetmealChangedEvent(ids, SetmealChangedEvent.OPERATE_SYNC));
 
     }
 
@@ -159,7 +173,7 @@ public class SetmealServiceImpl implements SetmealService {
         setmealDishMapper.delete(ids);
 
         //发布事件
-        applicationContext.publishEvent(new SetmealChangedEvent(ids,SetmealChangedEvent.OPERATE_DELETE));
+        applicationContext.publishEvent(new SetmealChangedEvent(ids, SetmealChangedEvent.OPERATE_DELETE));
 
     }
 
@@ -169,6 +183,11 @@ public class SetmealServiceImpl implements SetmealService {
      * */
     @Override
     public SetmealVO getById(Long id) {
+        //布隆过滤器
+        if (!setmealBloomFilter.contains(id)){
+           log.info("布隆过滤器拦截恶意请求，Setmeal ID: {}", id);
+           throw new BaseException(MessageConstant.SETMEAL_NOT_FOUND);
+        }
         //查询套餐数据
         Setmeal setmeal = setmealMapper.selectById(id);
 
@@ -209,19 +228,28 @@ public class SetmealServiceImpl implements SetmealService {
 
         //发布事件
         List<Long> syncIds = Collections.singletonList(setmeal.getId());
-        applicationContext.publishEvent(new SetmealChangedEvent(syncIds,SetmealChangedEvent.OPERATE_SYNC));
+        applicationContext.publishEvent(new SetmealChangedEvent(syncIds, SetmealChangedEvent.OPERATE_SYNC));
 
     }
 
 
     /**
      * 条件查询
-     *
-     * @param setmeal
-     * @return
      */
-    public List<Setmeal> list(Setmeal setmeal) {
+    public List<Setmeal> list(Long categoryId) {
+        //先查redis
+        List<Setmeal> setmealList = (List<Setmeal>) redisTemplate.opsForHash().get(SETMEAL_KEY, SETMEAL_FIELD + categoryId);
+        if (setmealList != null) {
+            return setmealList;
+        }
+
+        Setmeal setmeal = new Setmeal();
+        setmeal.setCategoryId(categoryId);
+        setmeal.setStatus(StatusConstant.ENABLE);
         List<Setmeal> list = setmealMapper.list(setmeal);
+
+        redisTemplate.opsForHash().put(SETMEAL_KEY, SETMEAL_FIELD + categoryId, list);
+
         return list;
     }
 

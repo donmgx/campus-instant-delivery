@@ -16,6 +16,7 @@ import com.campus.service.CouponService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBloomFilter;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,8 @@ public class CouponServiceImpl implements CouponService {
     private CouponMapper couponMapper;
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private RBloomFilter<Long> couponBloomFilter;
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
@@ -165,6 +168,11 @@ public class CouponServiceImpl implements CouponService {
      * */
     @Transactional
     public void claimCoupon(Long couponId) {
+        //布隆过滤器
+        if (!couponBloomFilter.contains(couponId)){
+            log.info("布隆过滤器拦截恶意请求，coupon ID: {}", couponId);
+            throw new BaseException(MessageConstant.COUPON_NOT_EXIST);
+        }
         //获取用户id
         Long userId = BaseContext.getCurrentId();
 

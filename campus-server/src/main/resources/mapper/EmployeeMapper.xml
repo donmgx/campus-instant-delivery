@@ -4,7 +4,7 @@
 <mapper namespace="com.campus.mapper.EmployeeMapper">
 
     <select id="selectPage" resultType="com.campus.entity.Employee">
-        select * from employee
+        select * from campus_delivery.employee
         <where>
             <if test="name != null and name !=''">
                 name like concat('%',#{name},'%')
@@ -14,7 +14,7 @@
     </select>
 
     <update id="update" parameterType="com.campus.entity.Employee">
-        update employee
+        update campus_delivery.employee
         <set>
             <if test="name!=null and name!=null">name = #{name},</if>
             <if test="username!=null and username!=null">username = #{username},</if>

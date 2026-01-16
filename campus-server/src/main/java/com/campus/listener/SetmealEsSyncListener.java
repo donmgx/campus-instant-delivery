@@ -6,6 +6,7 @@ import com.campus.event.SetmealChangedEvent;
 import com.campus.mapper.SetmealMapper;
 import com.campus.repository.SetmealDocRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBloomFilter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -28,6 +29,9 @@ public class SetmealEsSyncListener {
     private SetmealMapper setmealMapper;
 
     @Autowired
+    private RBloomFilter setmealBloomFilter;
+
+    @Autowired
     private SetmealDocRepository setmealDocRepository;
 
     @Async
@@ -48,6 +52,8 @@ public class SetmealEsSyncListener {
                     SetmealDoc setmealDoc = new SetmealDoc();
                     BeanUtils.copyProperties(setmeal, setmealDoc);
                     setmealDocs.add(setmealDoc);
+                    //同步添加到布隆过滤器
+                    setmealBloomFilter.add(setmealId);
                 }
             }
 

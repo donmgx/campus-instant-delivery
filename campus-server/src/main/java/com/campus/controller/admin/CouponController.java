@@ -41,7 +41,7 @@ public class CouponController {
     /*
      * 根据id查询优惠券详情
      * */
-    @GetMapping("/list")
+    @GetMapping("/list/{id}")
     @PreAuthorize("hasAuthority('coupon:list')")
     public Result<Coupon> list(@PathVariable Long id) {
         log.info("根据id查询优惠券详情：id:{}", id);

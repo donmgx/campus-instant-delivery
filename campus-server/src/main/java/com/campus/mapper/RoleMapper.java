@@ -12,6 +12,6 @@ public interface RoleMapper {
     /*
      * 查询角色
      * */
-    @Select("select code from sys_role where id = #{roleId}")
+    @Select("select code from campus_delivery.sys_role where id = #{roleId}")
     List<String> selectCodeByRoleId(Integer roleId);
 }

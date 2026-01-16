@@ -50,4 +50,6 @@ public class MessageConstant {
     public static final String COUPON_THRESHOLD_NOT_REACHED = "未达到优惠券使用门槛";
     public static final String COUPON_RECOMMENDED = "已自动为您选取最佳优惠券";
     public static final String COUPON_NO_AVAILABLE = "暂无可用优惠券";
+    public static final String DISH_NOT_FOUND = "菜品不存在";
+    public static final String SETMEAL_NOT_FOUND = "套餐不存在";
 }
