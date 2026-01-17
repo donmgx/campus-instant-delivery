@@ -33,7 +33,7 @@ public interface DishService {
     /*
      * 根据菜品 id 查询菜品和口味
      * */
-    DishVO getDishWithFlavor(Long id);
+    DishVO getDishWithFlavor(Long id) throws InterruptedException;
 
     /*
      * 修改菜品

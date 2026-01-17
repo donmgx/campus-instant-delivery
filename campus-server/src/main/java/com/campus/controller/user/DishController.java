@@ -14,10 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController("userDishController")
 @RequestMapping("/user/dish")
@@ -60,9 +62,22 @@ public class DishController {
 
         //如果不存在，查询数据库,将查询到的数据放入redis
         list = dishService.listWithFlavor(dish);
-        redisTemplate.opsForValue().set(key, list);
+        redisTemplate.opsForValue().set(key, list, 24, TimeUnit.HOURS);
 
         return Result.success(list);
+    }
+
+
+    /**
+     * 根据ID查询菜品详情
+     *
+     */
+    @GetMapping("/{id}")
+    @ApiOperation("根据ID查询菜品详情")
+    public Result<DishVO> get(@PathVariable Long id) throws InterruptedException {
+        log.info("用户根据id:{}查看菜品详情",id);
+        DishVO dishVO = dishService.getDishWithFlavor(id);
+        return Result.success(dishVO);
     }
 
     /*

@@ -2,6 +2,7 @@ package com.campus.service.impl;
 
 import com.campus.event.DishChangedEvent;
 import com.campus.exception.BaseException;
+import com.campus.exception.OrderBusinessException;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.campus.constant.MessageConstant;
@@ -22,15 +23,22 @@ import com.campus.service.DishService;
 import com.campus.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBloomFilter;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 /*
  * 菜品相关操作
  *
@@ -47,6 +55,9 @@ public class DishServiceImpl implements DishService {
     private SetmealMapper setmealMapper;
 
     @Autowired
+    private RedissonClient redissonClient;
+
+    @Autowired
     private RBloomFilter<Long> dishBloomFilter;
 
     @Autowired
@@ -57,6 +68,13 @@ public class DishServiceImpl implements DishService {
 
     @Autowired
     private ApplicationContext applicationContext; //注入Spring上下文用于发事件
+
+    @Autowired
+    @Qualifier("myRedisTemplate")
+    private RedisTemplate<String, Object> redisTemplate;
+
+    //最大重试次数
+    private static final int MAX_RETRY_COUNT = 3;
 
 
     /*
@@ -85,7 +103,7 @@ public class DishServiceImpl implements DishService {
 
         //发布事件
         List<Long> ids = Collections.singletonList(dishId);
-        applicationContext.publishEvent(new DishChangedEvent(ids,DishChangedEvent.OPERATE_SYNC));
+        applicationContext.publishEvent(new DishChangedEvent(ids, DishChangedEvent.OPERATE_SYNC));
 
     }
 
@@ -127,32 +145,102 @@ public class DishServiceImpl implements DishService {
         dishFlavorMapper.deleteByDishId(ids);
 
         //发布事件
-        applicationContext.publishEvent(new DishChangedEvent(ids,DishChangedEvent.OPERATE_DELETE));
+        applicationContext.publishEvent(new DishChangedEvent(ids, DishChangedEvent.OPERATE_DELETE));
     }
 
 
     /*
      * 根据菜品 id 查询菜品和口味
      * */
-    public DishVO getDishWithFlavor(Long id) {
+    public DishVO getDishWithFlavor(Long id) throws InterruptedException {
         //第一道防线：布隆过滤器
-        if (!dishBloomFilter.contains(id)){
+        if (!dishBloomFilter.contains(id)) {
             log.info("布隆过滤器拦截恶意请求，Dish ID: {}", id);
             throw new BaseException(MessageConstant.DISH_NOT_FOUND);
         }
 
-        //查询菜品
-        Dish dish = dishMapper.getById(id);
-        //查询口味
-        List<DishFlavor> dishFlavors = dishFlavorMapper.getByDishId(id);
-
-        DishVO dishVO = new DishVO();
-        //对象属性拷贝
-        BeanUtils.copyProperties(dish, dishVO);
-
-        dishVO.setFlavors(dishFlavors);
-        return dishVO;
+        return getByIdWithFlavorInternal(id,0);
     }
+
+    /*
+    * 缓存查询 + 互斥锁 + 递归重试
+    * */
+    private DishVO getByIdWithFlavorInternal(Long id, int retryCount) {
+        String key = "dish_" + id;
+        //查询redis缓存
+        Object cacheVal = redisTemplate.opsForValue().get(key);
+        if (cacheVal != null) {
+            DishVO dishVO = (DishVO) cacheVal;
+            if (dishVO.getId() == null) {
+                //缓存存了空值
+                return null;
+            }
+            //返回有效数据
+            return dishVO;
+        }
+
+        //开始处理缓存击穿：互斥锁
+        String lockKey = "lock:dish:" + id;
+        //获取分布式锁实例
+        RLock lock = redissonClient.getLock(lockKey);
+
+        try {
+            //尝试获取锁
+            boolean isLocked = lock.tryLock(500, 5000, TimeUnit.MILLISECONDS);
+            if (isLocked) {
+                //如果成功获取锁
+                try {
+                    //双重检查,前面那个人可能已经把缓存重建好了
+                    Object secondCheck = redisTemplate.opsForValue().get(key);
+                    if (secondCheck != null) {
+                        DishVO dishVO = (DishVO) secondCheck;
+                        if (dishVO.getId() == null) {
+                            return null;
+                        }
+                        return dishVO;
+                    }
+
+                    log.info("获得分布式锁，正在重建缓存: {}", id);
+
+                    //查询菜品
+                    Dish dish = dishMapper.getById(id);
+                    if (dish != null) {
+                        //数据库查到该数据
+                        //查询口味
+                        List<DishFlavor> dishFlavors = dishFlavorMapper.getByDishId(id);
+                        DishVO dishVO = new DishVO();
+                        //对象属性拷贝
+                        BeanUtils.copyProperties(dish, dishVO);
+                        dishVO.setFlavors(dishFlavors);
+                        //同步到redis
+                        redisTemplate.opsForValue().set(key, dishVO, 24, TimeUnit.HOURS);
+                        return dishVO;
+                    } else {
+                        //数据库也没查到,缓存存空对象，防止再次查库
+                        redisTemplate.opsForValue().set(key, new DishVO(), 5, TimeUnit.MINUTES);
+                        return null;
+                    }
+                } finally {
+                    //释放锁
+                    lock.unlock();
+                }
+            } else {
+                if (retryCount < MAX_RETRY_COUNT) {
+                    log.info("获取锁失败，进行第 {} 次重试... ID: {}", retryCount + 1, id);
+                    return getByIdWithFlavorInternal(id, retryCount + 1);
+                } else {
+                    //超过最大尝试次数，放弃
+                    log.warn("重试次数耗尽，降级处理 ID: {}", id);
+                    throw new OrderBusinessException("服务器繁忙，请稍后重试");
+                }
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            throw new OrderBusinessException(MessageConstant.SYSTEM_ERROR);
+        }
+
+    }
+
 
     /*
      * 修改菜品
@@ -178,7 +266,7 @@ public class DishServiceImpl implements DishService {
 
         //发布事件
         List<Long> ids = Collections.singletonList(dish.getId());
-        applicationContext.publishEvent(new DishChangedEvent(ids,DishChangedEvent.OPERATE_SYNC));
+        applicationContext.publishEvent(new DishChangedEvent(ids, DishChangedEvent.OPERATE_SYNC));
     }
 
 
@@ -204,7 +292,7 @@ public class DishServiceImpl implements DishService {
 
         //发布事件
         List<Long> ids = Collections.singletonList(id);
-        applicationContext.publishEvent(new DishChangedEvent(ids,DishChangedEvent.OPERATE_SYNC));
+        applicationContext.publishEvent(new DishChangedEvent(ids, DishChangedEvent.OPERATE_SYNC));
     }
 
 

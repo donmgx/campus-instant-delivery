@@ -52,4 +52,5 @@ public class MessageConstant {
     public static final String COUPON_NO_AVAILABLE = "暂无可用优惠券";
     public static final String DISH_NOT_FOUND = "菜品不存在";
     public static final String SETMEAL_NOT_FOUND = "套餐不存在";
+    public static final String SYSTEM_ERROR = "系统异常";
 }

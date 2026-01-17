@@ -99,7 +99,7 @@ public class DishController {
     @GetMapping("/{id}")
     @ApiOperation("根据菜品 id 查询菜品和口味")
     @PreAuthorize("hasAuthority('dish:list')")
-    public Result<DishVO> getDishWithFlavor(@PathVariable Long id) {
+    public Result<DishVO> getDishWithFlavor(@PathVariable Long id) throws InterruptedException {
         log.info("根据菜品 id 查询菜品和口味: 菜品id:{}", id);
         //返回DishVO类型
         DishVO dishVO = dishService.getDishWithFlavor(id);
