@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 /*
  * 菜品相关操作
@@ -212,8 +213,8 @@ public class DishServiceImpl implements DishService {
                         //对象属性拷贝
                         BeanUtils.copyProperties(dish, dishVO);
                         dishVO.setFlavors(dishFlavors);
-                        //同步到redis
-                        redisTemplate.opsForValue().set(key, dishVO, 24, TimeUnit.HOURS);
+                        //同步到redis,存入随机过期时间，预防缓存雪崩
+                        redisTemplate.opsForValue().set(key, dishVO, 300+ ThreadLocalRandom.current().nextInt(10), TimeUnit.MINUTES);
                         return dishVO;
                     } else {
                         //数据库也没查到,缓存存空对象，防止再次查库
