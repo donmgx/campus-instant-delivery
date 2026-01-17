@@ -2,6 +2,7 @@ package com.campus.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.campus.config.RabbitConfig;
 import com.campus.constant.StatusConstant;
 import com.campus.exception.BaseException;
 import com.campus.vo.*;
@@ -23,6 +24,7 @@ import com.campus.utils.WeChatPayUtil;
 import com.campus.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.splitmap.AbstractIterableGetMapDecorator;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private WeChatPayUtil weChatPayUtil;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Autowired
     private WebSocketServer webSocketServer;
@@ -209,6 +214,11 @@ public class OrderServiceImpl implements OrderService {
                 .orderAmount(orders.getAmount())
                 .orderTime(orders.getOrderTime())
                 .build();
+
+        //发送延迟消息
+        //只需要发订单ID，发到 TTL 队列
+        rabbitTemplate.convertAndSend(RabbitConfig.QUEUE_TTL_ORDER, orders.getId());
+        log.info("订单创建成功，已发送延迟消息，订单ID: {}", orders.getId());
 
         return orderSubmitVO;
     }

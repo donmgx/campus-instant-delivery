@@ -21,9 +21,8 @@ public class OrderTask {
     @Autowired
     private OrderMapper orderMapper;
 
-
     /*
-     * 订单超时处理
+     * 订单超时处理（兜底策略）
      * */
     @Scheduled(cron = "0 * * * * ? ")
     public void processTimeOutOrder() {
@@ -33,7 +32,7 @@ public class OrderTask {
         List<Orders> ordersList = orderMapper.getByStatusAndOrderTime(Orders.PENDING_PAYMENT, LocalDateTime.now().plusMinutes(-15));
 
         //设置超时订单的状态
-        if (ordersList != null && ordersList.size() > 0) {
+        if (ordersList != null && !ordersList.isEmpty()) {
             for (Orders orders : ordersList) {
                 orders.setStatus(Orders.CANCELLED);
                 orders.setCancelReason(MessageConstant.ORDER_TIMEOUT);
@@ -45,11 +44,11 @@ public class OrderTask {
 
 
     /*
-    * 订单派送长时间未完成处理
-    * */
+     * 订单派送长时间未完成处理
+     * */
     @Scheduled(cron = " 0 0 1 * * ? ")
-    public void processDeliverOrder(){
-        log.info("订单派送长时间未完成处理：{}",LocalDateTime.now());
+    public void processDeliverOrder() {
+        log.info("订单派送长时间未完成处理：{}", LocalDateTime.now());
 
         //查询昨日的订单
         List<Orders> ordersList = orderMapper.getByStatusAndOrderTime(Orders.DELIVERY_IN_PROGRESS, LocalDateTime.now().plusHours(-1));
