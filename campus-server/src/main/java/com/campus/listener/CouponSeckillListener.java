@@ -23,7 +23,7 @@ public class CouponSeckillListener {
     private UserCouponMapper userCouponMapper;
 
     /*
-     * 用于监听RabbitMQ队列 ,插入数据库
+     * 用于监听 RabbitMQ 队列 ,插入数据库
      * */
     @RabbitListener(queues = RabbitConfig.SECKILL_QUEUE)
     private void processSeckillMsg(Map<String, Object> msg) {

@@ -21,4 +21,8 @@ public interface CouponService {
     void startSeckill(Long id);
 
     void claimCoupon(Long couponId);
+
+    //系统发放优惠券
+    void sendSystemCoupon(Long userId, Long rewardCouponId);
+
 }

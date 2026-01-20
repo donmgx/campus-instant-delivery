@@ -7,6 +7,7 @@ import com.campus.context.BaseContext;
 import com.campus.dto.CouponDTO;
 import com.campus.dto.CouponPageQueryDTO;
 import com.campus.entity.Coupon;
+import com.campus.entity.UserCoupon;
 import com.campus.entity.es.CouponDoc;
 import com.campus.exception.BaseException;
 import com.campus.mapper.CouponMapper;
@@ -26,6 +27,7 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,46 +170,90 @@ public class CouponServiceImpl implements CouponService {
      * */
     @Transactional
     public void claimCoupon(Long couponId) {
-        //布隆过滤器
-        if (!couponBloomFilter.contains(couponId)){
+        // 布隆过滤器
+        if (!couponBloomFilter.contains(couponId)) {
             log.info("布隆过滤器拦截恶意请求，coupon ID: {}", couponId);
             throw new BaseException(MessageConstant.COUPON_NOT_EXIST);
         }
-        //获取用户id
+        // 获取用户 id
         Long userId = BaseContext.getCurrentId();
 
-        //构造redis key
+        // 构造 redis key
         List<String> keys = List.of(
                 SECKILL_COUPON_STOCK_KEY + couponId,
                 SECKILL_COUPON_USER + couponId
         );
 
-        //执行Lua脚本
+        // 执行 Lua 脚本
         Long result = stringRedisTemplate.execute(
                 SECKILL_SCRIPT,
                 keys,
                 String.valueOf(userId)
         );
 
-        //用户已经领取过一次
+        // 用户已经领取过一次
         if (result != null && result == -1) {
             throw new BaseException(MessageConstant.REPEAT_CLAIM);
         }
-        //优惠券库存不足
+        // 优惠券库存不足
         if (result != null && result == -2) {
             throw new BaseException(MessageConstant.COUPONS_HAVE_BEEN_SNAPPED_UP);
         }
 
-        //Lua返回1，领取成功，异步落库：发消息给MQ
-        //构造消息体
+        // Lua返回 1，领取成功，异步落库：发消息给 MQ
+        // 构造消息体
         Map<String, Object> map = new HashMap();
         map.put("userId", userId);
         map.put("couponId", couponId);
-        map.put("endTime",couponMapper.getById(couponId).getEndTime().toString());
-        //发送消息,队列名，消息对象
+        map.put("endTime", couponMapper.getById(couponId).getEndTime().toString());
+        // 发送消息,队列名，消息对象
         rabbitTemplate.convertAndSend(RabbitConfig.SECKILL_QUEUE, map);
 
         log.info("id为{}的用户抢券id：{}成功,已发消息至MQ", userId, couponId);
+
+    }
+
+
+    /*
+     * 系统发放优惠券
+     * */
+    @Transactional(rollbackFor = Exception.class)
+    public void sendSystemCoupon(Long userId, Long rewardCouponId) {
+        // 构造用户优惠券对象
+        UserCoupon userCoupon = new UserCoupon();
+        userCoupon.setUserId(userId);
+        userCoupon.setCouponId(rewardCouponId);
+        userCoupon.setStatus(0); // 0: 未使用
+        userCoupon.setGetTime(LocalDateTime.now());
+
+        // 构造 redis key
+        List<String> keys = List.of(
+                SECKILL_COUPON_STOCK_KEY + rewardCouponId,
+                SECKILL_COUPON_USER + rewardCouponId
+        );
+
+        // 执行 Lua 脚本
+        Long result = stringRedisTemplate.execute(
+                SECKILL_SCRIPT,
+                keys,
+                String.valueOf(userId)
+        );
+
+        // 优惠券库存不足
+        if (result != null && result == -2) {
+            throw new BaseException(MessageConstant.COUPONS_HAVE_BEEN_SNAPPED_UP);
+        }
+
+        // Lua返回 1或 -1，领取成功，异步落库：发消息给 MQ
+        // 构造消息体
+        Map<String, Object> map = new HashMap();
+        map.put("userId", userId);
+        map.put("couponId", rewardCouponId);
+        map.put("endTime", couponMapper.getById(rewardCouponId).getEndTime().toString());
+        // 发送消息,队列名，消息对象
+        rabbitTemplate.convertAndSend(RabbitConfig.SECKILL_QUEUE, map);
+
+        log.info("id 为 {} 的用户抢券 id：{} 成功，已发消息至 MQ", userId, rewardCouponId);
 
     }
 }
