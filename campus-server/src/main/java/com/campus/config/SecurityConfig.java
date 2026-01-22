@@ -65,6 +65,8 @@ public class SecurityConfig {
                         .antMatchers("/admin/employee/login").permitAll()
                         .antMatchers("/user/**").permitAll()//小程序登录放行
                         .antMatchers("/captcha/**").permitAll()
+                        .antMatchers("/rider/register", "rider/login").permitAll()
+                        .antMatchers("/rider/**").permitAll()
                         .antMatchers("/doc.html", "/webjars/**", "/swagger-resources/**", "/v3/api-docs/**").permitAll()  //swagger放行
                         .anyRequest().authenticated()
                 )

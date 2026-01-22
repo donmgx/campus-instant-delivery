@@ -1,6 +1,7 @@
 package com.campus.config;
 
 import com.campus.interceptor.IdempotentInterceptor;
+import com.campus.interceptor.JwtTokenRiderInterceptor;
 import com.campus.interceptor.JwtTokenUserInterceptor;
 import com.campus.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     @Autowired
     private JwtTokenUserInterceptor jwtTokenUserInterceptor;
     @Autowired
+    private JwtTokenRiderInterceptor jwtTokenRiderInterceptor;
+    @Autowired
     private IdempotentInterceptor idempotentInterceptor;
 
     /**
@@ -46,6 +49,9 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                 .addPathPatterns("/user/**")
                 .excludePathPatterns("/user/user/login")
                 .excludePathPatterns("/user/shop/status");
+        registry.addInterceptor(jwtTokenRiderInterceptor)
+                .addPathPatterns("/rider/**")
+                .excludePathPatterns("/rider/rider/login");
         //增加幂等性拦截器
         registry.addInterceptor(idempotentInterceptor)
                 .addPathPatterns("/**");

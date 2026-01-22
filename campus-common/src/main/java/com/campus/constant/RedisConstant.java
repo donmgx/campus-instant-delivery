@@ -11,5 +11,11 @@ public class RedisConstant {
     // 连续签到天数 Bitmap key: "sign:streak:userId"
     public static final String SIGN_STREAK_KEY = "sign:streak:";
 
+    // 骑手登录 key 前缀
+    public static final String LOGIN_RIDER_KEY = "login:rider:";
+
+    // 骑手抢单的分布式锁key
+    public static final String LOCK_ORDER_TAKE = "lock:order:take:";
+
 
 }

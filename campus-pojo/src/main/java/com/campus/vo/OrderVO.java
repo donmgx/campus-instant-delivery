@@ -24,5 +24,6 @@ public class OrderVO extends Orders implements Serializable {
     private String deliveryModeName; // “外卖配送” or “到店自取”
     //桌号
     private String tableNumber;
+    private String pickupCode;
 
 }

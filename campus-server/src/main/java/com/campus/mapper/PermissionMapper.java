@@ -12,6 +12,6 @@ public interface PermissionMapper {
     /*
      * 根据roleId查询权限信息
      * */
-    List<String> selectPermissionByRoleId(Integer roleId);
+    List<String> selectPermissionByRoleId(Long roleId);
 
 }

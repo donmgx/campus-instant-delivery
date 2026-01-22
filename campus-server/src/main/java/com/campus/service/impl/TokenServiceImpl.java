@@ -18,7 +18,10 @@ public class TokenServiceImpl implements TokenService {
     private StringRedisTemplate stringRedisTemplate;
     private static final String IDEMPOTENT_TOKEN_PREFIX = "idempotent_token_";
 
-    @Override
+
+    /*
+    * 获取 幂等性 token
+    * */
     public String createToken() {
         Long currentId = BaseContext.getCurrentId();
         if (currentId == null) {
@@ -39,7 +42,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public Boolean checkToken(String token) {
         if (!StringUtils.hasText(token)) {
-            throw new BaseException(MessageConstant.TOKEN_NOT_EXIST);
+            throw new BaseException(MessageConstant.IDEMPOTENT_TOKEN_NOT_EXIST);
         }
 
         Long currentUserId = BaseContext.getCurrentId();
@@ -55,7 +58,7 @@ public class TokenServiceImpl implements TokenService {
         }
 
         //使用delete操作的返回值来保证原子性
-        //如果删除成功，返回true，说明Redis里有这个key，且被当前线程抢占删除了
+        //如果删除成功，返回true，说明 Redis 里有这个 key，且被当前线程抢占删除了
         Boolean delete = stringRedisTemplate.delete(token);
 
         //如果删除失败,返回false，说明Redis里没有该key

@@ -35,8 +35,8 @@ public class MessageConstant {
     public static final String AUTHENTICATION_FAILED = "认证失败，请重新登录";
     public static final String INSUFFICIENT_PERMISSIONS = "您的权限不足";
     public static final String NOT_SUBMIT_REPEATEDLY_OR_TOKEN_EXPIRED = "您的请求已处理，请勿重复提交";
-    public static final String TOKEN_EXPIRED_OR_BELONGS_TO_OTHERS = "Token已过期或属于其他用户";
-    public static final String TOKEN_NOT_EXIST = "Token不存在";
+    public static final String TOKEN_EXPIRED_OR_BELONGS_TO_OTHERS = "幂等性Token已过期或属于其他用户";
+    public static final String IDEMPOTENT_TOKEN_NOT_EXIST = "幂等性校验 Token 不存在";
     public static final String CAPTCHA_VERIFICATION_NOT_COMPLETE = "请先完成滑动验证";
     public static final String COUPON_NOT_EXIST = "优惠券不存在";
     public static final String COUPON_IS_ONGOING = "活动正在进行";
@@ -53,6 +53,21 @@ public class MessageConstant {
     public static final String DISH_NOT_FOUND = "菜品不存在";
     public static final String SETMEAL_NOT_FOUND = "套餐不存在";
     public static final String SYSTEM_ERROR = "系统异常";
+    public static final String SYSTEM_BUSY = "系统繁忙";
     public static final String SIGN_SUCCESS = "签到成功";
     public static final String SIGNED_IN_TODAY = "今日已签到，无需重复签到";
+    public static final String RIDER_EXIST = "当前骑手已存在";
+    public static final String PHONE_OR_PASSWORD_IS_NULL = "当前手机号或密码为空";
+    public static final String NAME_IS_NULL = "当前用户名为空";
+    public static final String RIDER_REGISTER_SUCCESS = "注册成功";
+    public static final String UPDATE_SUCCESS = "修改成功";
+    public static final String ORDER_SNAPPED_UP = "手慢了亲，订单已被抢走";
+    public static final String TAKE_ORDER_SUCCESS = "抢单成功";
+    public static final String ORDER_COMPLETE = "已完成订单";
+    public static final String ORDER_OPERATION_FORBIDDEN = "您无权操作他人订单";
+    public static final String ORDER_NOT_EXIST = "订单不存在";
+    public static final String TIME_ERROR = "时间错误";
+    public static final String CANCEL_ORDER_SUCCESS = "订单取消成功";
+    public static final String NEW_ORDER_NOTICE = "你有新的外卖订单待抢，请及时处理！";
+    public static final String PICKUP_CODE_ERROR = "取餐码错误";
 }

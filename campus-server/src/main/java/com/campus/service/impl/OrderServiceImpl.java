@@ -23,7 +23,6 @@ import com.campus.utils.WeChatPayUtil;
 
 import com.campus.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.splitmap.AbstractIterableGetMapDecorator;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -183,6 +179,8 @@ public class OrderServiceImpl implements OrderService {
         orders.setStatus(Orders.PENDING_PAYMENT);
         orders.setPayStatus(Orders.UN_PAID);
         orders.setCouponId(userCouponId); //优惠券id
+        orders.setOriginalAmount(originalAmount);
+        orders.setPickupCode(String.format("%04d", new Random().nextInt(10000)));
 
         orderMapper.insert(orders);
 
@@ -213,6 +211,7 @@ public class OrderServiceImpl implements OrderService {
                 .orderNumber(orders.getNumber())
                 .orderAmount(orders.getAmount())
                 .orderTime(orders.getOrderTime())
+                .pickupCode(orders.getPickupCode())
                 .build();
 
         //发送延迟消息
@@ -556,11 +555,22 @@ public class OrderServiceImpl implements OrderService {
      * 接单
      * */
     public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
-        Orders orders = Orders.builder().id(ordersConfirmDTO.getId())
+        // 修改数据库状态为 CONFIRMED (3)
+        Orders orders = Orders.builder()
+                .id(ordersConfirmDTO.getId())
                 .status(Orders.CONFIRMED)
                 .build();
-
         orderMapper.update(orders);
+
+
+        // 通过 WebSocket 推送消息给所有骑手
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", 3); // 定义 type=3 为新订单提醒
+        map.put("orderId", ordersConfirmDTO.getId());
+        map.put("content", MessageConstant.NEW_ORDER_NOTICE);
+
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllRiders(json);
     }
 
 
@@ -673,12 +683,12 @@ public class OrderServiceImpl implements OrderService {
             for (UserCoupon uc : availableCoupons) {
                 Coupon coupon = couponMapper.getById(uc.getCouponId());
                 //校验门槛
-                if (goodsAmount.compareTo(coupon.getMinPoint()) < 0){
+                if (goodsAmount.compareTo(coupon.getMinPoint()) < 0) {
                     //如果未达到最小使用金额，直接下一轮
                     continue;
                 }
                 //校验过期时间
-                if (uc.getEndTime() != null && LocalDateTime.now().isAfter(uc.getEndTime())){
+                if (uc.getEndTime() != null && LocalDateTime.now().isAfter(uc.getEndTime())) {
                     //防止脏数据
                     continue;
                 }
@@ -686,7 +696,7 @@ public class OrderServiceImpl implements OrderService {
                 //可优惠金额
                 BigDecimal currentDiscount = BigDecimal.ZERO;
                 //计算最大可优惠金额
-                if (coupon.getType() == StatusConstant.FULL_REDUCTION){
+                if (coupon.getType() == StatusConstant.FULL_REDUCTION) {
                     //如果是满减
                     currentDiscount = coupon.getAmount();
                 } else if (coupon.getType() == StatusConstant.DISCOUNT) {
@@ -694,7 +704,7 @@ public class OrderServiceImpl implements OrderService {
                     currentDiscount = currentDiscount.subtract(currentDiscount.multiply(coupon.getAmount()));
                 }
                 //获取折扣更多的券
-                if (currentDiscount.compareTo(maxDiscount) > 0){
+                if (currentDiscount.compareTo(maxDiscount) > 0) {
                     maxDiscount = currentDiscount;
                     //获取券id
                     bestCouponId = coupon.getId();
@@ -705,7 +715,7 @@ public class OrderServiceImpl implements OrderService {
         //最大折扣后的实际价格
         BigDecimal payAmount = totalAmount.subtract(maxDiscount);
         //校验是否小于0
-        if (payAmount.compareTo(BigDecimal.ZERO) < 0){
+        if (payAmount.compareTo(BigDecimal.ZERO) < 0) {
             payAmount = BigDecimal.ZERO;
         }
 
@@ -714,7 +724,7 @@ public class OrderServiceImpl implements OrderService {
                 .discountAmount(maxDiscount)
                 .originalAmount(goodsAmount)
                 .recommendCouponId(bestCouponId)
-                .desc(bestCouponId != null?MessageConstant.COUPON_RECOMMENDED:MessageConstant.COUPON_NO_AVAILABLE)
+                .desc(bestCouponId != null ? MessageConstant.COUPON_RECOMMENDED : MessageConstant.COUPON_NO_AVAILABLE)
                 .build();
     }
 }

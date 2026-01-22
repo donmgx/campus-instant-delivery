@@ -1,6 +1,7 @@
 package com.campus.interceptor;
 
 import com.campus.annotation.AutoIdempotent;
+import com.campus.properties.JwtProperties;
 import com.campus.service.TokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class IdempotentInterceptor implements HandlerInterceptor {
 
     @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private JwtProperties jwtProperties;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {

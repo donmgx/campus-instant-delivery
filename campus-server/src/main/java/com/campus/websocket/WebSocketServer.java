@@ -2,11 +2,13 @@ package com.campus.websocket;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -69,7 +71,7 @@ public class WebSocketServer {
     }
 
     /**
-     * [新增] 指定发送给某个客户端 (这才叫专业)
+     * 指定发送给某个客户端
      */
     public void sendToClient(String sid, String message) {
         Session session = sessionMap.get(sid);
@@ -81,6 +83,27 @@ public class WebSocketServer {
             }
         } else {
             log.warn("客户端 {} 不在线，消息发送失败", sid);
+        }
+    }
+
+    /**
+     * 群发消息给所有骑手
+     *
+     * @param message
+     */
+    public void sendToAllRiders(String message) {
+        for (Map.Entry<String, Session> entry : sessionMap.entrySet()) {
+            String sid = entry.getKey();
+            Session session = entry.getValue();
+
+            // 骑手的客户端连接时，sid 都是以 "rider_" 开头
+            if (sid.startsWith("rider_")) {
+                try {
+                    session.getBasicRemote().sendText(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
@@ -103,6 +126,18 @@ import java.util.Map;
 
 *//**
  * WebSocket服务
+ * <p>
+ * 连接建立成功调用的方法
+ * <p>
+ * 收到客户端消息后调用的方法
+ *
+ * @param message 客户端发送过来的消息
+ * <p>
+ * 连接关闭调用的方法
+ * @param sid
+ * <p>
+ * 群发
+ * @param message
  *//*
 @Slf4j
 @Component
@@ -113,8 +148,8 @@ public class WebSocketServer {
     private static Map<String, Session> sessionMap = new HashMap();
 
     *//**
-     * 连接建立成功调用的方法
-     *//*
+ * 连接建立成功调用的方法
+ *//*
     @OnOpen
     public void onOpen(Session session, @PathParam("sid") String sid) {
         log.info("客户端：{}建立连接", sid);
@@ -122,20 +157,20 @@ public class WebSocketServer {
     }
 
     *//**
-     * 收到客户端消息后调用的方法
-     *
-     * @param message 客户端发送过来的消息
-     *//*
+ * 收到客户端消息后调用的方法
+ *
+ * @param message 客户端发送过来的消息
+ *//*
     @OnMessage
     public void onMessage(String message, @PathParam("sid") String sid) {
         log.info("收到来自客户端：{}的信息:", message);
     }
 
     *//**
-     * 连接关闭调用的方法
-     *
-     * @param sid
-     *//*
+ * 连接关闭调用的方法
+ *
+ * @param sid
+ *//*
     @OnClose
     public void onClose(@PathParam("sid") String sid) {
         log.info("连接断开:{}", sid);
@@ -143,10 +178,10 @@ public class WebSocketServer {
     }
 
     *//**
-     * 群发
-     *
-     * @param message
-     *//*
+ * 群发
+ *
+ * @param message
+ *//*
     public void sendToAllClient(String message) {
         Collection<Session> sessions = sessionMap.values();
         for (Session session : sessions) {

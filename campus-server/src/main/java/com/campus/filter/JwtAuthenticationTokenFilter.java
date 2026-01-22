@@ -65,8 +65,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             return;
         }
 
-        //2 .如果 token不为空 ，解析token
-
+        //2 .如果 token不为空 ，解析 token
         String userId;
         try {
             Claims claims = JwtUtil.parseJWT(jwtProperties.getAdminSecretKey(), token);

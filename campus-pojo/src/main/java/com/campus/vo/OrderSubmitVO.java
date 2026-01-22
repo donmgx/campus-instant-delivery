@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Random;
 
 @Data
 @Builder
@@ -22,4 +23,6 @@ public class OrderSubmitVO implements Serializable {
     private BigDecimal orderAmount;
     //下单时间
     private LocalDateTime orderTime;
+    // 取餐码
+    private String pickupCode;
 }

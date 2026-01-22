@@ -4,7 +4,8 @@
 <mapper namespace="com.campus.mapper.OrderMapper">
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into campus_delivery.orders (number, status, user_id, coupon_id, address_book_id, original_amount,
+        insert into campus_delivery.orders (number, status, user_id, pickup_code, coupon_id, address_book_id,
+                                            original_amount,
                                             order_time,
                                             checkout_time, pay_method, pay_status,
                                             amount, remark, phone, address, user_name, consignee, cancel_reason,
@@ -12,7 +13,8 @@
                                             cancel_time, estimated_delivery_time, delivery_status, delivery_time,
                                             pack_amount,
                                             tableware_number, tableware_status)
-        values (#{number}, #{status}, #{userId}, #{couponId}, #{addressBookId}, #{originalAmount}, #{orderTime},
+        values (#{number}, #{status}, #{userId}, #{pickupCode}, #{couponId}, #{addressBookId}, #{originalAmount},
+                #{orderTime},
                 #{checkoutTime}, #{payMethod}, #{payStatus}, #{amount}, #{remark}, #{phone}, #{address}, #{userName},
                 #{consignee}, #{cancelReason}, #{rejectionReason}, #{cancelTime}, #{estimatedDeliveryTime},
                 #{deliveryStatus}, #{deliveryTime}, #{packAmount}, #{tablewareNumber}, #{tablewareStatus})
@@ -45,10 +47,20 @@
             <if test="deliveryTime != null">
                 delivery_time = #{deliveryTime}
             </if>
+            <if test="riderId != null">
+                rider_id = #{riderId}
+            </if>
         </set>
         where id = #{id}
     </update>
-
+    <update id="updateStatusAndRider">
+        update campus_delivery.orders
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="riderId != null">rider_id = #{riderId},</if>
+        </set>
+        where id = #{id} and status = 3 and rider_id is null
+    </update>
     <select id="selectPage" resultType="com.campus.entity.Orders">
         select * from campus_delivery.orders
         <where>
@@ -66,7 +78,7 @@
                 and phone like concat('%',#{phone},'%')
             </if>
             <if test="beginTime != null">
-                and order_time  >= #{beginTime}
+                and order_time >= #{beginTime}
             </if>
 
         </where>
@@ -106,7 +118,7 @@
         from campus_delivery.order_detail od, campus_delivery.orders ods
         <where>
             ods.id = od.order_id
-            and ods.status = 6
+            and ods.status = 5
             <if test="beginTime != null">and ods.order_time &gt; #{beginTime}</if>
             <if test="endTime != null">and ods.order_time &lt; #{endTime}</if>
         </where>
@@ -114,5 +126,28 @@
         order by number desc, od.name desc
         limit 0,10
     </select>
-
+    <select id="listByStatus" resultType="com.campus.entity.Orders">
+        select *
+        from campus_delivery.orders
+        where status = #{status}
+          and rider_id is null
+        order by order_time desc
+    </select>
+    <select id="getMyRunningList" resultType="com.campus.entity.Orders">
+        select *
+        from campus_delivery.orders
+        <where>
+            rider_id = #{riderId}
+            <if test="status != null">and status = #{status}</if>
+        </where>
+    </select>
+    <select id="countRiderIncome" resultType="java.lang.Integer">
+        select count(*) from campus_delivery.orders
+        <where>
+            rider_id = #{riderId}
+            and status = 5
+            <if test="beginTime != null">and delivery_time > #{beginTime}</if>
+            <if test="endTime != null">and delivery_time &lt; #{endTime}</if>
+        </where>
+    </select>
 </mapper>

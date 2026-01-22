@@ -1,9 +1,6 @@
 package com.campus.controller.admin;
 
-import com.anji.captcha.model.common.ResponseModel;
-import com.anji.captcha.model.vo.CaptchaVO;
 import com.anji.captcha.service.CaptchaService;
-import com.campus.constant.MessageConstant;
 import com.campus.dto.EmployeeDTO;
 import com.campus.dto.EmployeeLoginDTO;
 import com.campus.dto.EmployeePageQueryDTO;

@@ -3,7 +3,7 @@ package com.campus.service.impl;
 import com.anji.captcha.model.common.ResponseModel;
 import com.anji.captcha.model.vo.CaptchaVO;
 import com.anji.captcha.service.CaptchaService;
-import com.campus.constant.JwtClaimsConstant;
+import com.campus.constant.*;
 import com.campus.context.BaseContext;
 import com.campus.dto.*;
 import com.campus.properties.JwtProperties;
@@ -13,9 +13,6 @@ import com.campus.utils.JwtUtil;
 import com.campus.vo.EmployeeLoginVO;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.campus.constant.MessageConstant;
-import com.campus.constant.PasswordConstant;
-import com.campus.constant.StatusConstant;
 import com.campus.entity.Employee;
 import com.campus.exception.AccountLockedException;
 import com.campus.exception.PasswordErrorException;
@@ -72,7 +69,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
         Authentication authenticate = authenticationManager.authenticate(authenticationToken);
 
-        //如果认证通过，获取UserDetails
+        //如果认证通过，获取 UserDetails
         if (authenticate == null) {
             throw new RuntimeException(MessageConstant.LOGIN_FAILED);
         }
@@ -101,7 +98,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         loginUser.setToken(token);
         LoginMemberCacheDTO loginMemberCacheDTO = new LoginMemberCacheDTO(employee, loginUser.getPermissions(), token);
-        //将完整的登录信息(包含权限)存入Redis，Key为 "login_" + userId
+        //将完整的登录信息(包含权限)存入 Redis，Key 为 "login_" + userId
         String redisKey = "login_" + employee.getId();
 
         try {
@@ -137,16 +134,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPassword(passwordEncoder.encode(PasswordConstant.DEFAULT_PASSWORD));
 
         //设置角色
-        employee.setRoleId(2);
-
-        //设置创建时间，更新时间
-        /*employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());*/
-
-        /*//设置当前记录 创建人的id 和 修改人id
-        Long currentId = BaseContext.getCurrentId();
-        employee.setCreateUser(currentId);
-        employee.setUpdateUser(currentId);*/
+        employee.setRoleId(RoleConstant.EMPLOYEE);
 
         //插入到数据库中
         employeeMapper.insert(employee);
@@ -193,10 +181,6 @@ public class EmployeeServiceImpl implements EmployeeService {
      * */
     @Override
     public void startOrStop(Integer status, Long id) {
-        /*Employee employee = new Employee();
-        employee.setStatus(status);
-        employee.setId(id);*/
-
         Employee employee = Employee.builder()
                 .status(status)
                 .id(id)

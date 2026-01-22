@@ -27,11 +27,11 @@ public class LoginUser implements UserDetails {
 
     private Employee employee;
 
-    private List<String> permissions;  //从数据库查出来的-原始权限列表 和角色
+    private List<String> permissions;  //从数据库查出来的-原始权限列表 和 角色
 
     private String token;
 
-    // 关键点 1：必须给 authorities 加 @JsonIgnore，因为它无法被序列化
+    // 1：必须给 authorities 加 @JsonIgnore，因为它无法被序列化
     @JsonIgnore
     private List<SimpleGrantedAuthority> authorities; //存储Spring Security所需要的权限信息，缓存转换后的 GrantedAuthority 对象
 
@@ -40,8 +40,8 @@ public class LoginUser implements UserDetails {
         this.permissions = permissions;
     }
 
-    // 关键点 2：在获取权限时动态转换，这样 Redis 里只存 permissions 字符串列表，不存 authorities 对象
-    @JsonIgnore // 同样忽略这个 Getter 的序列化
+    // 2：在获取权限时动态转换，这样 Redis 里只存 permissions 字符串列表，不存 authorities 对象
+    @JsonIgnore // 忽略这个 Getter 的序列化
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if (authorities != null) {
