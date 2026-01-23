@@ -1,6 +1,8 @@
 package com.campus.controller.user;
 
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.campus.constant.MessageConstant;
 import com.campus.constant.StatusConstant;
 import com.campus.entity.es.CouponDoc;
@@ -33,12 +35,18 @@ public class CouponController {
      * */
     @PostMapping("/claim/{id}")
     @ApiOperation("领取优惠券")
+    @SentinelResource(value = "seckillCoupon", blockHandler = "seckillBlockHandler")
     public Result claim(@PathVariable Long id) {
         log.info("用户抢购优惠券couponId：{}", id);
-
         couponService.claimCoupon(id);
-
         return Result.success(MessageConstant.COUPON_CLAIM_SUCCESS);
+    }
+    /*
+    * Sentinel 限流保护
+    * */
+    public Result seckillBlockHandler(Long couponId, BlockException ex) {
+        log.warn("领取优惠券接口流量过大，触发限流保护！");
+        return Result.error("抢券火爆，请稍后重试");
     }
 
 

@@ -1,5 +1,7 @@
 package com.campus.controller.user;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.campus.annotation.AutoIdempotent;
 import com.campus.dto.OrdersPageQueryDTO;
 import com.campus.dto.OrdersPaymentDTO;
@@ -33,23 +35,31 @@ public class OrderController {
     @ApiOperation("用户下单")
     @PostMapping("/submit")
     @AutoIdempotent //幂等性
+    @SentinelResource(value = "submitOrder", blockHandler = "submitOrderBlockHandler")
     public Result<OrderSubmitVO> submit(@RequestBody OrdersSubmitDTO ordersSubmitDTO) {
         log.info("用户下单:{}", ordersSubmitDTO);
         OrderSubmitVO orderSubmitVO = orderService.submitOrder(ordersSubmitDTO);
         return Result.success(orderSubmitVO);
     }
 
+    /**
+     * 限流后的兜底方法，返回类型与原方法一致，参数最后多一个 BlockException
+     */
+    public Result<OrderSubmitVO> submitOrderBlockHandler(OrdersSubmitDTO dto, BlockException ex) {
+        log.warn("下单接口流量过大，触发限流保护！");
+        return Result.error("当前下单人数过多，请稍后重试");
+    }
+
     /*
-    * 预计算支付价格
-    * */
+     * 预计算支付价格
+     * */
     @GetMapping("/calculate")
     @ApiOperation("订单费用试算")
-    public Result<OrderCalculateVO> calculate(@RequestParam Long addressBookId){
-        log.info("预计算支付价格,addressBookId:{}",addressBookId);
+    public Result<OrderCalculateVO> calculate(@RequestParam Long addressBookId) {
+        log.info("预计算支付价格,addressBookId:{}", addressBookId);
         OrderCalculateVO orderCalculateVO = orderService.calculate();
         return Result.success(orderCalculateVO);
     }
-
 
 
     /**
@@ -102,12 +112,12 @@ public class OrderController {
 
 
     /*
-    * 再来一单
-    * */
+     * 再来一单
+     * */
     @PostMapping("/repetition/{id}")
     @ApiOperation("再来一单")
-    public Result submitAgain(@PathVariable Long id){
-        log.info("再来一单：原订单{}",id);
+    public Result submitAgain(@PathVariable Long id) {
+        log.info("再来一单：原订单{}", id);
 
         orderService.submitAgain(id);
 
@@ -116,12 +126,12 @@ public class OrderController {
 
 
     /*
-    * 催单
-    * */
+     * 催单
+     * */
     @GetMapping("/reminder/{id}")
     @ApiOperation("催单")
-    public Result remider(@PathVariable Long id){
-        log.info("客户催单:{}",id);
+    public Result remider(@PathVariable Long id) {
+        log.info("客户催单:{}", id);
         orderService.remider(id);
         return Result.success();
     }

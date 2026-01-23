@@ -1,5 +1,7 @@
 package com.campus.controller.rider;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.campus.constant.MessageConstant;
 import com.campus.context.BaseContext;
 import com.campus.result.Result;
@@ -36,12 +38,17 @@ public class RiderOrderController {
      * */
     @GetMapping("/{orderId}")
     @ApiOperation("骑手抢单")
+    @SentinelResource(value = "riderTakeOrder", blockHandler = "takeOrderBlockHandler")
     public Result takeOrder(@PathVariable Long orderId) {
         Long riderId = BaseContext.getCurrentId();
         log.info("骑手{}抢单{}", riderId, orderId);
         riderOrderService.takeOrder(riderId, orderId);
         log.info("骑手{}抢单{}成功", riderId, orderId);
         return Result.success(MessageConstant.TAKE_ORDER_SUCCESS);
+    }
+    public Result takeOrderBlockHandler(Long id, BlockException ex) {
+        log.warn("抢单接口流量过大，触发限流保护！");
+        return Result.error("抢单人数过多，请手动刷新");
     }
 
 
