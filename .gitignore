@@ -1,7 +1,10 @@
 **/target/
-.idea
+**/.idea/
 *.iml
+**/*.jar
+**/*.iml
 *.class
+**/*.class
 *Test.java
 *.yml
 *.properties
@@ -26,3 +29,8 @@ release.properties
 # OS
 .DS_Store
 Thumbs.db
+
+# 前端相关
+**/node_modules/
+**/dist/
+**/.hbuilderx/
