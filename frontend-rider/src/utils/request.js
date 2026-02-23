@@ -11,10 +11,10 @@ const service = axios.create({
 // 请求拦截器：自动携带 Token
 service.interceptors.request.use(
   config => {
-    // 从 localStorage 里拿出来的变量名还叫 token 没关系，这只是前端存的名字
+    // 前端存的名字
     const token = localStorage.getItem('token')
     if (token) {
-      // 发给后端时，把包在外面的名字改成 rider-jwt！
+      // 发给后端时，把包在外面的名字改成 rider-jwt
       config.headers['rider-jwt'] = token
     }
     return config
@@ -26,7 +26,7 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   response => {
     const res = response.data
-    // 对应你后端的 Result 类，code 为 1 表示成功
+    // 对应后端的 Result 类，code 为 1 表示成功
     if (res.code === 1) {
       return res.data // 直接返回 data 部分
     } else {

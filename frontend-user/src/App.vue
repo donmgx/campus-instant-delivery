@@ -18,7 +18,7 @@ page {
   color: $campus-text-main;
 }
 
-/* 隐藏小程序默认的滚动条，提升颜值 */
+/* 隐藏小程序默认的滚动条 */
 ::-webkit-scrollbar {
   display: none;
   width: 0 !important;

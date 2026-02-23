@@ -54,7 +54,7 @@ import { getStatsAPI, updateRiderAPI } from '../api/rider.js'
 
 const router = useRouter()
 
-// 🌟 安全解析骑手信息，防止 JSON.parse 崩溃
+// 安全解析骑手信息，防止 JSON.parse 崩溃
 let initRiderInfo = {}
 try {
   const localStr = localStorage.getItem('riderInfo')

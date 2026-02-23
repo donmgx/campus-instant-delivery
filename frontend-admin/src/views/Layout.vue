@@ -207,7 +207,7 @@ onMounted(() => {
   box-shadow: 0 2px 4px rgba(0,0,0,0.08); 
   z-index: 10; 
   padding: 0 20px;
-  height: 60px; /* 固定头部高度 */
+  height: 60px;
 }
 
 .header-right {

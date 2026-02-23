@@ -105,7 +105,6 @@ const goToAddress = () => {
   uni.navigateTo({ url: '/pages/address/address' })
 }
 
-// 在 script setup 里加上这个跳转方法
 const goToOrderList = () => {
   uni.navigateTo({ url: '/pages/order/list' })
 }
@@ -129,7 +128,6 @@ const handleLogout = () => {
 </script>
 
 <style scoped>
-/* 保证所有环境 100% 渲染成功 */
 .my-container {
   min-height: 100vh;
   background-color: #f7f8fa;

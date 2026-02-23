@@ -6,7 +6,7 @@ export const getCouponPageAPI = (params) => request.get('/admin/coupon/page', { 
 // 新增优惠券
 export const addCouponAPI = (data) => request.post('/admin/coupon/add', data)
 
-// 根据ID查询详情 (回显用)
+// 根据ID查询详情，回显
 export const getCouponByIdAPI = (id) => request.get(`/admin/coupon/list/${id}`)
 
 // 修改优惠券

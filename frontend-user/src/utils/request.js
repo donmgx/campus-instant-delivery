@@ -22,7 +22,7 @@ export const request = (options) => {
       data: options.data || {},
       header: header,
       success: (res) => {
-        // 🌟 核心拦截 1：处理 HTTP 状态码 401 (Token 过期/未登录)
+        // 拦截 1：处理 HTTP 状态码 401 (Token 过期/未登录)
         if (res.statusCode === 401) {
           uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
           uni.removeStorageSync('token')
@@ -35,7 +35,7 @@ export const request = (options) => {
 
         const data = res.data
         
-        // 🌟 核心拦截 2：兼容后端返回 200，但业务层面提示未登录的情况
+        // 拦截 2：兼容后端返回 200，但业务层面提示未登录的情况
         if (data.code === 0 && (data.msg === 'NOTLOGIN' || (data.msg && data.msg.includes('登录')))) {
           uni.showToast({ title: '身份校验失败，请重新登录', icon: 'none' })
           uni.removeStorageSync('token')

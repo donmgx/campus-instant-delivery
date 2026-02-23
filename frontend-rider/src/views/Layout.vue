@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-// 这里什么都不需要了，交给路由自动匹配高亮
+// 交给路由自动匹配高亮
 </script>
 
 <style scoped>

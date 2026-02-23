@@ -132,7 +132,7 @@ const rules = {
 // --- 辅助方法 ---
 const formatDate = (dateString) => {
   if (!dateString) return ''
-  // 截取掉后端的毫秒数或者不需要的部分，保留到分钟即可
+  // 截取掉后端的毫秒数或者不需要的部分，保留到分钟
   return dateString.substring(0, 16)
 }
 

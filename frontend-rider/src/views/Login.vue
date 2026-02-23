@@ -65,8 +65,7 @@ const onSubmit = async (values) => {
       password: values.password
     }
     const res = await loginAPI(submitData)
-    
-    // 🌟 核心排错点：在控制台打印后端返回到底长什么样！
+
     console.log('后端登录接口返回的数据：', res)
     
     // 防错校验：如果 res 里面没有 token 字段，说明后端的属性名可能不叫 token

@@ -7,7 +7,6 @@ const routes = [
     },
     {
 
-        // 新增的登录路由
         path: '/login',
         component: () => import('../views/Login.vue')
     },

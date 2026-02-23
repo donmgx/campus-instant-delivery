@@ -95,7 +95,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { getAddressListAPI } from '../../api/address.js'
 import { getCartListAPI } from '../../api/cart.js'
 import { getOrderTokenAPI, submitOrderAPI, payOrderAPI } from '../../api/order.js'
-import { getMyCouponListAPI } from '../../api/coupon.js' // 🌟 引入优惠券接口
+import { getMyCouponListAPI } from '../../api/coupon.js' // 引入优惠券接口
 
 const currentAddress = ref(null)
 const cartList = ref([])
@@ -105,18 +105,18 @@ const orderToken = ref('')
 const packFee = ref(2.00)
 const deliveryFee = ref(3.00)
 
-// 🌟 优惠券核心状态
+// 优惠券核心状态
 const availableCoupons = ref([]) 
 const selectedCoupon = ref(null)
 const showCouponPopup = ref(false)
 
-// 🌟 动态计算出“当前金额满足条件”的可用券
+// 动态计算出“当前金额满足条件”的可用券
 const usableCoupons = computed(() => {
   const goodsTotal = cartList.value.reduce((sum, item) => sum + (parseFloat(item.amount) || 0) * (parseInt(item.number) || 0), 0)
   return availableCoupons.value.filter(c => goodsTotal >= c.conditionAmount)
 })
 
-// 🌟 终极防线计算总价：商品 + 包装 + 配送 - 优惠券 (最低支付 0.01 元)
+// 终极防线计算总价：商品 + 包装 + 配送 - 优惠券 (最低支付 0.01 元)
 const finalPrice = computed(() => {
   const list = Array.isArray(cartList.value) ? cartList.value : []
   const goodsTotal = list.reduce((sum, item) => {
@@ -132,7 +132,7 @@ const finalPrice = computed(() => {
     total -= selectedCoupon.value.amount
   }
   
-  // 商业级兜底：防止贴钱（最低支付 1 分钱）
+  // 兜底：防止贴钱（最低支付 1 分钱）
   return Math.max(0.01, total).toFixed(2)
 })
 
@@ -140,7 +140,7 @@ onShow(async () => {
   await loadDefaultAddress()
   await loadCartData()
   await fetchOrderToken() 
-  await loadCoupons() // 🌟 拉取优惠券
+  await loadCoupons() // 拉取优惠券
 })
 
 const loadCoupons = async () => {
@@ -148,7 +148,7 @@ const loadCoupons = async () => {
     const res = await getMyCouponListAPI(0) // 1 表示拉取未使用的
     availableCoupons.value = Array.isArray(res) ? res : (res?.records || [])
     
-    // 测试用假数据（联调真实数据后可删除此块）
+    // 测试用假数据
     if (availableCoupons.value.length === 0) {
       availableCoupons.value = [
         { id: 1, name: '新人无门槛神券', amount: 5, conditionAmount: 0 },
@@ -156,7 +156,7 @@ const loadCoupons = async () => {
       ]
     }
     
-    // 智能逻辑：默认帮用户选一张抵扣最多的（大厂必备体验）
+    // 默认帮用户选一张抵扣最多的
     if (usableCoupons.value.length > 0 && !selectedCoupon.value) {
       selectedCoupon.value = usableCoupons.value.reduce((max, cur) => cur.amount > max.amount ? cur : max, usableCoupons.value[0])
     }
@@ -222,7 +222,7 @@ const handleSubmit = async () => {
       payMethod: 1, deliveryStatus: 1, estimatedDeliveryTime: formattedTime, 
       packAmount: packFee.value, tablewareNumber: 1, tablewareStatus: 1, 
       remark: '尽快送达！', deliveryMode: 1,
-      // 🌟 终极使命：将优惠券 ID 交给后端进行核销！
+      // 将优惠券 ID 交给后端进行核销
       couponId: selectedCoupon.value ? selectedCoupon.value.id : null
     }
 
@@ -257,7 +257,6 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-/* 保持原有基础样式不变 */
 .submit-container { min-height: 100vh; background-color: #f7f8fa; padding: 20rpx; padding-bottom: 140rpx; }
 .address-box { background-color: #fff; border-radius: 20rpx; padding: 30rpx; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20rpx; position: relative; }
 .address-box::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 6rpx; background: repeating-linear-gradient(-45deg, #ff6c6c 0, #ff6c6c 20%, transparent 0, transparent 25%, #1989fa 0, #1989fa 45%, transparent 0, transparent 50%); background-size: 160rpx; border-bottom-left-radius: 20rpx; border-bottom-right-radius: 20rpx; }
@@ -281,7 +280,7 @@ const handleSubmit = async () => {
 .num { font-size: 26rpx; color: #999; }
 .fee-row { display: flex; justify-content: space-between; font-size: 26rpx; color: #666; margin-top: 20rpx; }
 
-/* 🌟 新增：优惠券行样式 */
+/* 优惠券行样式 */
 .coupon-row { border-top: 1px dashed #eee; padding-top: 20rpx; margin-top: 30rpx; align-items: center; }
 .coupon-label { font-size: 28rpx; color: #333; font-weight: bold; }
 .coupon-value { display: flex; align-items: center; }
@@ -290,7 +289,7 @@ const handleSubmit = async () => {
 .font-bold { font-weight: bold; font-size: 32rpx; }
 .coupon-value .arrow { margin-left: 10rpx; font-size: 24rpx; }
 
-/* 🌟 新增：优惠券底部弹窗 */
+/* 优惠券底部弹窗 */
 .coupon-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
 .coupon-popup { position: fixed; bottom: -100%; left: 0; right: 0; background: #f7f8fa; border-radius: 30rpx 30rpx 0 0; z-index: 1010; transition: all 0.3s; padding-bottom: constant(safe-area-inset-bottom); padding-bottom: env(safe-area-inset-bottom); }
 .coupon-popup.show { bottom: 0; }

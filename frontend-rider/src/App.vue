@@ -3,7 +3,6 @@
 </template>
 
 <style>
-/* 移动端全局基础样式重置 */
 body, html, #app {
   margin: 0;
   padding: 0;

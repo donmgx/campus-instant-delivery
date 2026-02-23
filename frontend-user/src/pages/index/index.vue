@@ -58,7 +58,7 @@ const goToMenu = () => {
   uni.switchTab({ url: '/pages/menu/menu' })
 }
 
-// 🌟 点击假搜索框的跳转逻辑
+// 点击假搜索框的跳转逻辑
 const goToSearch = () => {
   // 埋下一个标记，告诉点餐页“我要聚焦搜索框”
   uni.setStorageSync('autoSearchFocus', true)

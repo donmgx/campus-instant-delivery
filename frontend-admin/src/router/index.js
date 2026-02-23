@@ -15,7 +15,6 @@ const routes = [
       { path: 'coupon', component: () => import('../views/Coupon.vue') },
       { path: 'setmeal', component: () => import('../views/Setmeal.vue') },
       { path: 'report', component: () => import('../views/Report.vue') }
-      // 后续你只需要在这里添加 { path: 'order', component: () => import('../views/Order.vue') }
     ]
   }
 ]

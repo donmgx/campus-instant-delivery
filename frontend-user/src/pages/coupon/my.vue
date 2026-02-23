@@ -40,7 +40,7 @@ import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getMyCouponListAPI } from '../../api/coupon.js'
 
-// 🌟 修改 5：0: 未使用, 1: 已使用, 2: 已过期。默认值设为 0
+// 0: 未使用, 1: 已使用, 2: 已过期。默认值设为 0
 const currentStatus = ref(0)
 const couponList = ref([])
 
@@ -61,8 +61,7 @@ const fetchCoupons = async () => {
     
     // 强制转换为数组，防止报错
     couponList.value = Array.isArray(res) ? res : (res?.records || [])
-    
-    // 🌟 修改 6：假数据的判断条件也改为 0
+
     if (couponList.value.length === 0 && currentStatus.value === 0) {
       couponList.value = [
         { id: 1, name: '新人专享神券', amount: 5, conditionAmount: 20, expirationTime: '2026-12-31 23:59:59' },
@@ -82,7 +81,7 @@ const goToMenu = () => {
 </script>
 
 <style scoped>
-/* 所有 CSS 样式保持完全不变，非常完美 */
+
 .coupon-container { height: 100vh; display: flex; flex-direction: column; background-color: #f7f8fa; }
 .tab-bar { display: flex; background: #fff; height: 100rpx; position: relative; }
 .tab-item { flex: 1; text-align: center; line-height: 100rpx; font-size: 28rpx; color: #666; font-weight: bold; transition: color 0.3s; z-index: 2; }

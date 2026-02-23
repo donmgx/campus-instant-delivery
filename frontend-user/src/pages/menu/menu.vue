@@ -107,7 +107,7 @@ const showCartPopup = ref(false)
 const showDetailPopup = ref(false)
 const currentGoods = ref({})
 
-// 🌟 ES 搜索模块核心变量
+//  ES 搜索模块核心变量
 const searchKeyword = ref('')
 const searchResults = ref([])
 const isSearchFocus = ref(false)
@@ -130,7 +130,7 @@ onShow(async () => {
   await loadCart() 
 })
 
-// 🌟 ES 防抖搜索核心逻辑
+// ES 防抖搜索核心逻辑
 let searchTimer = null
 const handleSearchInput = () => {
   const kw = searchKeyword.value.trim()
@@ -143,7 +143,7 @@ const handleSearchInput = () => {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(async () => {
     try {
-      // 触发你后端的 ES 检索接口！
+      // 触发后端的 ES 检索接口
       const res = await searchGoodsAPI(kw)
       searchResults.value = res || []
     } catch (error) {
@@ -205,7 +205,7 @@ const toggleCartPopup = async () => {
   }
 }
 
-// 复用了现有的加入购物车逻辑！
+// 复用现有的加入购物车逻辑
 // 精准判断加入购物车的是菜品还是套餐
 const handleAddToCart = async (goods) => {
   uni.showLoading({ title: '加入中...' })
@@ -214,14 +214,14 @@ const handleAddToCart = async (goods) => {
     
     // 逻辑分流：判断用户当前是在搜索还是在看分类
     if (isSearching.value) {
-      // 1. 搜索模式：如果后端明确返回了 type=2 则是套餐，否则苍穹的搜索默认全当菜品处理
+      // 1. 搜索模式：如果后端明确返回了 type=2 则是套餐
       if (goods.type === 2) {
         postData.setmealId = goods.id
       } else {
         postData.dishId = goods.id
       }
     } else {
-      // 2. 分类模式：严格根据左侧选中分类的 type 来决定！(1: 菜品, 2: 套餐)
+      // 2. 分类模式：严格根据左侧选中分类的 type 来决定(1: 菜品, 2: 套餐)
       if (currentCategory.value.type === 2) {
         postData.setmealId = goods.id
       } else {
@@ -295,17 +295,17 @@ const goToCheckout = () => {
 </script>
 
 <style scoped>
-/* 🌟 新增：整体布局变为纵向 Flex，保证搜索框固定在顶部 */
+/* 整体布局变为纵向 Flex，保证搜索框固定在顶部 */
 .menu-container { display: flex; flex-direction: column; height: 100vh; padding-bottom: 150rpx; box-sizing: border-box; background-color: #fff; position: relative; }
 
-/* 🌟 搜索栏样式 */
+/* 搜索栏样式 */
 .search-header { padding: 20rpx 30rpx; background-color: #fff; border-bottom: 1px solid #f5f5f5; z-index: 100; }
 .search-input-box { background-color: #f2f3f5; height: 72rpx; border-radius: 36rpx; display: flex; align-items: center; padding: 0 30rpx; }
 .search-input-box .icon { font-size: 32rpx; margin-right: 16rpx; color: #999; }
 .search-input-box .input { flex: 1; font-size: 28rpx; color: #333; }
 .search-input-box .clear { width: 40rpx; height: 40rpx; line-height: 40rpx; text-align: center; color: #fff; background: #ccc; border-radius: 50%; font-size: 24rpx; margin-left: 20rpx; }
 
-/* 🌟 主体内容区，填满剩余空间 */
+/* 主体内容区，填满剩余空间 */
 .content-body { display: flex; flex: 1; overflow: hidden; }
 
 /* 侧边栏及右侧商品列表样式 */
@@ -315,7 +315,7 @@ const goToCheckout = () => {
 .category-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 8rpx; height: 36rpx; background-color: #ff6034; border-radius: 0 4rpx 4rpx 0; }
 
 .goods-scroll { flex: 1; height: 100%; padding: 0 20rpx; }
-/* 🌟 处于搜索状态时，右侧列表霸占全屏 */
+/* 处于搜索状态时，右侧列表霸占全屏 */
 .goods-scroll.full-width { padding: 0 30rpx; }
 
 .goods-header { padding: 20rpx 0; } .goods-header .title { font-size: 28rpx; font-weight: bold; color: #323233; }

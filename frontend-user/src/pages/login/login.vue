@@ -16,7 +16,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import { wxLoginAPI } from '../../api/user.js'
 
 // 处理微信授权登录

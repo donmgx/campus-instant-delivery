@@ -3,7 +3,7 @@ import request from '../utils/request.js' // 这里的 request.js 逻辑和 admi
 // 1. 查询待抢订单 (抢单大厅)
 export const getWaitListAPI = () => request.get('/rider/order/waitList')
 
-// 2. 骑手抢单 (注意后端是 GET 请求)
+// 2. 骑手抢单
 export const takeOrderAPI = (orderId) => request.get(`/rider/order/${orderId}`)
 
 // 3. 查看我的待配送订单 (传入 status=4 表示派送中)

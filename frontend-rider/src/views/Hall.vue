@@ -81,7 +81,6 @@ const handleTakeOrder = (orderId) => {
     message: '抢单后请尽快前往商家取餐，超时将扣除信誉分！',
   }).then(async () => {
     try {
-      // 这里的接口做了 Sentinel 限流
       await takeOrderAPI(orderId) 
       showSuccessToast('抢单成功！请尽快配送')
       // 抢单成功后，立刻刷新大厅列表，把被抢走的单子移除

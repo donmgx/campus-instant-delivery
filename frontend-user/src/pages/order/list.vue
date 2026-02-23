@@ -51,7 +51,7 @@ import { getOrderListAPI, cancelOrderAPI, repetitionOrderAPI, payOrderAPI } from
 const tabList = [
   { label: '全部', value: '' },
   { label: '待付款', value: 1 },
-  { label: '进行中', value: 2 }, // 把待接单、派送中统称为进行中，简化展示
+  { label: '进行中', value: 2 }, // 待接单、派送中统称为进行中，简化展示
   { label: '已完成', value: 5 },
   { label: '已取消', value: 6 }
 ]
@@ -84,7 +84,7 @@ const loadMore = async () => {
   await fetchOrderData()
 }
 
-// 🌟 修复：精准控制参数，查“全部”时坚决不传 status 字段
+// 查“全部 ”时不传 status 字段
 const fetchOrderData = async () => {
   uni.showLoading({ title: '加载中...' })
   try {

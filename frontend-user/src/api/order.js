@@ -5,7 +5,6 @@ export const getOrderTokenAPI = () => request.get('/token')
 
 // 2. 提交订单
 export const submitOrderAPI = (data, orderToken) => {
-  // 🌟 核心修复：完全听你的，把名字改成 'idempotentToken'，并且不套多余的 header 对象
   return request.post('/order/submit', data, {
     'idempotentToken': orderToken 
   })
@@ -24,5 +23,5 @@ export const getOrderDetailAPI = (id) => request.get(`/order/orderDetail/${id}`)
 // 3. 取消订单
 export const cancelOrderAPI = (id) => request.put(`/order/cancel/${id}`)
 
-// 4. 再来一单 (后端会自动把这个订单里的商品重新塞回你的购物车！)
+// 4. 再来一单
 export const repetitionOrderAPI = (id) => request.post(`/order/repetition/${id}`)
